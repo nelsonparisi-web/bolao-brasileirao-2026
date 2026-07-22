@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { currency, formatPhone, type Game } from "@/lib/data";
+import { currency, formatPhone, normalizePhone, type Game } from "@/lib/data";
 import { useBolao } from "./bolao-context";
 
-type AdminTab = "participants" | "payments" | "schedule" | "settings";
+type AdminTab = "participants" | "payments" | "messages" | "schedule" | "settings";
+type MessageTemplate = "missing" | "leader" | "prize" | "invite";
 type Notice = { type: "success" | "error"; text: string } | null;
 
 function toLocalInput(value: string) {
@@ -16,14 +17,16 @@ function toLocalInput(value: string) {
 
 export function AdminPanel() {
   const {
-    isAdmin, currentUser, participants, payments, games, settings,
+    isAdmin, currentUser, participants, payments, games, guesses, settings,
     renameParticipant, deleteParticipant, addPayment, removePayment,
-    getParticipantPaymentStatus, updateGame, updateSettings,
+    getParticipantPaymentStatus, getRanking, updateGame, updateSettings,
   } = useBolao();
   const [tab, setTab] = useState<AdminTab>("participants");
   const [notice, setNotice] = useState<Notice>(null);
   const [busy, setBusy] = useState(false);
   const [participantId, setParticipantId] = useState("");
+  const [messageParticipantId, setMessageParticipantId] = useState("");
+  const [messageTemplate, setMessageTemplate] = useState<MessageTemplate>("missing");
   const [paymentDate, setPaymentDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [paymentAmount, setPaymentAmount] = useState(String(settings?.entry_fee ?? 100));
   const [round, setRound] = useState<number | "all">("all");
@@ -34,7 +37,8 @@ export function AdminPanel() {
 
   useEffect(() => {
     if (!participantId && participants[0]) setParticipantId(participants[0].id);
-  }, [participantId, participants]);
+    if (!messageParticipantId && participants[0]) setMessageParticipantId(participants[0].id);
+  }, [messageParticipantId, participantId, participants]);
 
   useEffect(() => {
     setFee(String(settings?.entry_fee ?? 100));
@@ -47,6 +51,46 @@ export function AdminPanel() {
   const rounds = useMemo(() => Array.from(new Set(games.map((game) => game.round))).sort((a, b) => a - b), [games]);
   const visibleGames = round === "all" ? games : games.filter((game) => game.round === round);
   const totalPaid = payments.reduce((sum, payment) => sum + Number(payment.amount), 0);
+  const entryFee = Number(settings?.entry_fee ?? 100);
+  const donationPercent = Number(settings?.donation_percent ?? 20);
+  const totalExpected = participants.length * entryFee;
+  const totalPending = Math.max(0, totalExpected - totalPaid);
+  const projectedDonation = totalExpected * donationPercent / 100;
+  const projectedPrizePool = totalExpected - projectedDonation;
+  const paidCount = participants.filter((participant) => getParticipantPaymentStatus(participant.id).pending === 0).length;
+  const ranking = getRanking();
+  const messageParticipant = participants.find((participant) => participant.id === messageParticipantId) ?? null;
+  const messageCompleted = messageParticipant
+    ? guesses.filter((guess) => guess.participant_id === messageParticipant.id && guess.score1 !== null && guess.score2 !== null).length
+    : 0;
+  const messageMissing = Math.max(0, games.length - messageCompleted);
+  const rankingIndex = messageParticipant ? ranking.findIndex((item) => item.participant.id === messageParticipant.id) : -1;
+  const rankingItem = rankingIndex >= 0 ? ranking[rankingIndex] : null;
+  const rankingPosition = rankingIndex + 1;
+  const prizePercent = rankingPosition >= 1 && rankingPosition <= 3 ? Number(settings?.prize_split?.[rankingPosition - 1] ?? 0) : 0;
+  const tiedCount = rankingItem ? ranking.filter((item) => item.points === rankingItem.points).length : 0;
+  const estimatedPrize = tiedCount > 0 ? totalExpected * prizePercent / 100 / tiedCount : 0;
+  const phoneDigits = normalizePhone(messageParticipant?.phone ?? "");
+  const whatsappPhone = phoneDigits.length === 10 || phoneDigits.length === 11 ? `55${phoneDigits}` : "";
+  const appUrl = typeof window === "undefined" ? "https://bolao-brasileirao-2026-five.vercel.app" : window.location.origin;
+  const messageText = (() => {
+    const name = messageParticipant?.name ?? "participante";
+    if (messageTemplate === "leader") {
+      return rankingPosition === 1
+        ? `Parabéns, ${name}!\n\nVocê está em 1º lugar no Bolão Beneficente do Brasileirão 2026 com ${rankingItem?.points ?? 0} pontos.\n\nContinue acompanhando o ranking em:\n${appUrl}`
+        : `Olá, ${name}!\n\nO ranking do Bolão Beneficente do Brasileirão 2026 foi atualizado. Sua posição atual é ${rankingPosition || "-"}º, com ${rankingItem?.points ?? 0} pontos.\n\nAcompanhe em:\n${appUrl}`;
+    }
+    if (messageTemplate === "prize") {
+      return estimatedPrize > 0
+        ? `Parabéns, ${name}!\n\nVocê está atualmente na faixa de premiação do Bolão Beneficente do Brasileirão 2026.\n\nColocação: ${rankingPosition}º lugar\nPontuação: ${rankingItem?.points ?? 0} pontos\nPrêmio estimado: ${currency.format(estimatedPrize)}\n\nEm caso de empate, o valor da colocação é dividido entre os participantes empatados.\n\nAcompanhe em:\n${appUrl}`
+        : `Olá, ${name}!\n\nO ranking e a premiação estimada do Bolão Beneficente do Brasileirão 2026 foram atualizados.\n\nSua posição atual é ${rankingPosition || "-"}º, com ${rankingItem?.points ?? 0} pontos.\n\nAcompanhe em:\n${appUrl}`;
+    }
+    if (messageTemplate === "invite") {
+      return `Olá!\n\nEstão abertas as inscrições para o Bolão Beneficente do Brasileirão 2026.\n\nValor: ${currency.format(entryFee)} por pessoa\nDoação: ${donationPercent}% do total arrecadado\nPIX: ${settings?.pix_key || "consulte o administrador"}\n\nCadastre-se e registre seus palpites em:\n${appUrl}`;
+    }
+    return `Olá, ${name}!\n\nVocê ainda possui ${messageMissing} palpites pendentes no Bolão Beneficente do Brasileirão 2026.\n\nAcesse o app e complete seus palpites antes do bloqueio de cada partida:\n${appUrl}`;
+  })();
+  const whatsappUrl = whatsappPhone ? `https://wa.me/${whatsappPhone}?text=${encodeURIComponent(messageText)}` : "";
 
   if (!isAdmin) return null;
 
@@ -109,7 +153,7 @@ export function AdminPanel() {
   };
 
   const tabs: Array<[AdminTab, string]> = [
-    ["participants", "Participantes"], ["payments", "Pagamentos"],
+    ["participants", "Participantes"], ["payments", "Financeiro"], ["messages", "WhatsApp"],
     ["schedule", "Jogos"], ["settings", "Configurações"],
   ];
 
@@ -135,7 +179,13 @@ export function AdminPanel() {
       </table></div>}
 
       {tab === "payments" && <div className="p-4">
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-2"><h3 className="font-black">Controle de pagamentos</h3><strong className="text-[#3157d5]">Recebido: {currency.format(totalPaid)}</strong></div>
+        <div className="mb-4"><h3 className="font-black">Controle financeiro</h3><p className="text-xs text-muted-foreground">Arrecadação, pendências, doação e premiação projetada.</p></div>
+        <div className="mb-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+          <article className="rounded-xl border border-indigo-100 bg-indigo-50/70 p-3"><span className="text-[10px] font-black uppercase text-indigo-700">Previsto</span><strong className="mt-1 block text-lg">{currency.format(totalExpected)}</strong><small className="text-muted-foreground">{participants.length} participantes</small></article>
+          <article className="rounded-xl border border-cyan-100 bg-cyan-50/70 p-3"><span className="text-[10px] font-black uppercase text-cyan-800">Recebido</span><strong className="mt-1 block text-lg">{currency.format(totalPaid)}</strong><small className="text-muted-foreground">{paidCount} pagos</small></article>
+          <article className="rounded-xl border border-rose-100 bg-rose-50/70 p-3"><span className="text-[10px] font-black uppercase text-rose-700">Pendente</span><strong className="mt-1 block text-lg">{currency.format(totalPending)}</strong><small className="text-muted-foreground">{participants.length - paidCount} pendentes</small></article>
+          <article className="rounded-xl border border-violet-100 bg-violet-50/70 p-3"><span className="text-[10px] font-black uppercase text-violet-700">Destinação</span><strong className="mt-1 block text-sm">{currency.format(projectedPrizePool)} prêmios</strong><small className="block text-muted-foreground">{currency.format(projectedDonation)} doação</small></article>
+        </div>
         <form onSubmit={savePayment} className="grid gap-2 rounded-xl bg-secondary p-3 sm:grid-cols-4">
           <select value={participantId} onChange={(event) => setParticipantId(event.target.value)} className="h-10 rounded-lg border bg-white px-3 text-sm font-bold">{participants.map((participant) => <option key={participant.id} value={participant.id}>{participant.name}</option>)}</select>
           <input type="date" value={paymentDate} onChange={(event) => setPaymentDate(event.target.value)} className="h-10 rounded-lg border px-3" />
@@ -147,6 +197,31 @@ export function AdminPanel() {
           const status = getParticipantPaymentStatus(participant.id);
           return <article key={participant.id} className="rounded-xl border p-3"><div className="flex justify-between gap-2"><strong>{participant.name}</strong><span className={`text-xs font-black ${status.pending ? "text-red-700" : "text-green-700"}`}>{status.pending ? "Pendente" : "Pago"}</span></div><p className="mt-1 text-xs text-muted-foreground">Pago: {currency.format(status.paid)} · Falta: {currency.format(status.pending)}</p>{payment && <button disabled={busy} onClick={() => run(() => removePayment(payment.id), "Pagamento removido.")} className="mt-2 text-xs font-black text-red-700">Remover pagamento</button>}</article>;
         })}</div>
+      </div>}
+
+      {tab === "messages" && <div className="grid gap-4 p-4 lg:grid-cols-[320px_1fr]">
+        <div className="grid content-start gap-3 rounded-2xl border bg-[#f5f7ff] p-4">
+          <div><h3 className="font-black">Mensagens pelo WhatsApp Web</h3><p className="text-xs text-muted-foreground">Escolha o participante e um dos quatro modelos.</p></div>
+          <label className="grid gap-1 text-xs font-black">Participante
+            <select value={messageParticipantId} onChange={(event) => setMessageParticipantId(event.target.value)} className="h-10 rounded-lg border bg-white px-3 text-sm font-bold">{participants.map((participant) => <option key={participant.id} value={participant.id}>{participant.name} · {formatPhone(participant.phone) || "sem celular"}</option>)}</select>
+          </label>
+          <div className="grid gap-2">
+            {([
+              ["missing", "Palpites pendentes", "Lembra quantos palpites ainda faltam."],
+              ["leader", "Líder do ranking", "Informa posição e pontuação atual."],
+              ["prize", "Faixa de premiação", "Informa colocação e prêmio estimado."],
+              ["invite", "Convite para participar", "Envia valor, doação, PIX e link."],
+            ] as Array<[MessageTemplate, string, string]>).map(([value, label, description]) => <button key={value} type="button" onClick={() => setMessageTemplate(value)} className={`rounded-xl border p-3 text-left transition ${messageTemplate === value ? "border-[#3157d5] bg-white shadow-md shadow-indigo-950/10" : "bg-white/60 hover:bg-white"}`}><strong className="block text-sm">{label}</strong><span className="text-[11px] text-muted-foreground">{description}</span></button>)}
+          </div>
+        </div>
+        <div className="grid content-start gap-3 rounded-2xl border p-4">
+          <div className="flex flex-wrap items-center justify-between gap-2"><div><span className="text-[10px] font-black uppercase text-[#3157d5]">Prévia da mensagem</span><h3 className="font-black">{messageParticipant?.name ?? "Selecione um participante"}</h3></div>{messageParticipant && <span className={`rounded-full px-3 py-1 text-xs font-black ${whatsappPhone ? "bg-cyan-100 text-cyan-900" : "bg-red-100 text-red-800"}`}>{whatsappPhone ? formatPhone(messageParticipant.phone) : "Celular inválido"}</span>}</div>
+          <textarea readOnly value={messageText} rows={13} className="w-full resize-none rounded-xl border bg-slate-50 p-3 text-sm leading-relaxed" />
+          <div className="flex flex-wrap gap-2">
+            <button type="button" onClick={async () => { await navigator.clipboard.writeText(messageText); setNotice({ type: "success", text: "Mensagem copiada." }); }} className="rounded-xl border px-4 py-3 text-sm font-black">Copiar mensagem</button>
+            {whatsappUrl ? <a href={whatsappUrl} target="_blank" rel="noreferrer" className="rounded-xl bg-[#25D366] px-5 py-3 text-sm font-black text-white shadow-md shadow-green-950/20">Abrir no WhatsApp Web</a> : <button type="button" disabled className="rounded-xl bg-slate-200 px-5 py-3 text-sm font-black text-slate-500">Cadastre um celular válido</button>}
+          </div>
+        </div>
       </div>}
 
       {tab === "schedule" && <div>
