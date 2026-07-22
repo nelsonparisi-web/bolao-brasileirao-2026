@@ -114,33 +114,33 @@ export function AdminPanel() {
   ];
 
   return (
-    <section className="overflow-hidden rounded-2xl border border-amber-200 bg-white shadow-xl">
-      <header className="border-b bg-gradient-to-r from-amber-50 to-white p-4">
-        <p className="text-[10px] font-black uppercase tracking-widest text-amber-700">Administração</p>
+    <section className="overflow-hidden rounded-2xl border border-indigo-200 bg-white shadow-xl">
+      <header className="border-b bg-gradient-to-r from-indigo-50 via-white to-cyan-50 p-4">
+        <p className="text-[10px] font-black uppercase tracking-widest text-[#3157d5]">Administração</p>
         <div className="mt-1 flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-xl font-black">Painel do administrador</h2>
           <nav className="flex flex-wrap gap-1" aria-label="Áreas administrativas">
-            {tabs.map(([value, label]) => <button key={value} onClick={() => { setTab(value); setNotice(null); }} className={`rounded-full px-3 py-2 text-xs font-black ${tab === value ? "bg-[#007a49] text-white" : "border bg-white"}`}>{label}</button>)}
+            {tabs.map(([value, label]) => <button key={value} onClick={() => { setTab(value); setNotice(null); }} className={`rounded-full px-3 py-2 text-xs font-black transition ${tab === value ? "bg-[#3157d5] text-white shadow-md shadow-indigo-950/20" : "border bg-white hover:border-indigo-300 hover:bg-indigo-50"}`}>{label}</button>)}
           </nav>
         </div>
         {notice && <p className={`mt-3 rounded-xl px-3 py-2 text-xs font-bold ${notice.type === "success" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>{notice.text}</p>}
       </header>
 
       {tab === "participants" && <div className="overflow-x-auto"><table className="w-full min-w-[620px] text-sm">
-        <thead><tr className="bg-[#f9faf7] text-left text-[10px] uppercase text-muted-foreground"><th className="p-3">Nome</th><th className="p-3">Celular</th><th className="p-3">Tipo</th><th className="p-3">Pagamento</th><th className="p-3">Ações</th></tr></thead>
+        <thead><tr className="bg-[#f5f7ff] text-left text-[10px] uppercase text-muted-foreground"><th className="p-3">Nome</th><th className="p-3">Celular</th><th className="p-3">Tipo</th><th className="p-3">Pagamento</th><th className="p-3">Ações</th></tr></thead>
         <tbody>{participants.map((participant) => {
           const payment = getParticipantPaymentStatus(participant.id);
-          return <tr key={participant.id} className="border-t"><td className="p-3 font-black">{participant.name}</td><td className="p-3">{formatPhone(participant.phone) || "—"}</td><td className="p-3"><span className={`rounded-full px-2 py-1 text-[10px] font-black ${participant.is_admin ? "bg-amber-100 text-amber-900" : "bg-green-100 text-green-800"}`}>{participant.is_admin ? "Admin" : "Participante"}</span></td><td className="p-3 text-xs">{payment.pending ? `${currency.format(payment.pending)} pendente` : "Pago"}</td><td className="p-3"><div className="flex gap-2"><button disabled={busy} onClick={() => editName(participant.id, participant.name)} className="rounded-lg border px-3 py-2 text-xs font-black">Renomear</button><button disabled={busy || participant.id === currentUser?.id} onClick={() => removeParticipant(participant.id, participant.name)} className="rounded-lg bg-red-50 px-3 py-2 text-xs font-black text-red-700 disabled:opacity-40">Excluir</button></div></td></tr>;
+          return <tr key={participant.id} className="border-t"><td className="p-3 font-black">{participant.name}</td><td className="p-3">{formatPhone(participant.phone) || "—"}</td><td className="p-3"><span className={`rounded-full px-2 py-1 text-[10px] font-black ${participant.is_admin ? "bg-violet-100 text-violet-900" : "bg-cyan-100 text-cyan-900"}`}>{participant.is_admin ? "Admin" : "Participante"}</span></td><td className="p-3 text-xs">{payment.pending ? `${currency.format(payment.pending)} pendente` : "Pago"}</td><td className="p-3"><div className="flex gap-2"><button disabled={busy} onClick={() => editName(participant.id, participant.name)} className="rounded-lg border px-3 py-2 text-xs font-black">Renomear</button><button disabled={busy || participant.id === currentUser?.id} onClick={() => removeParticipant(participant.id, participant.name)} className="rounded-lg bg-red-50 px-3 py-2 text-xs font-black text-red-700 disabled:opacity-40">Excluir</button></div></td></tr>;
         })}</tbody>
       </table></div>}
 
       {tab === "payments" && <div className="p-4">
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-2"><h3 className="font-black">Controle de pagamentos</h3><strong className="text-[#007a49]">Recebido: {currency.format(totalPaid)}</strong></div>
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2"><h3 className="font-black">Controle de pagamentos</h3><strong className="text-[#3157d5]">Recebido: {currency.format(totalPaid)}</strong></div>
         <form onSubmit={savePayment} className="grid gap-2 rounded-xl bg-secondary p-3 sm:grid-cols-4">
           <select value={participantId} onChange={(event) => setParticipantId(event.target.value)} className="h-10 rounded-lg border bg-white px-3 text-sm font-bold">{participants.map((participant) => <option key={participant.id} value={participant.id}>{participant.name}</option>)}</select>
           <input type="date" value={paymentDate} onChange={(event) => setPaymentDate(event.target.value)} className="h-10 rounded-lg border px-3" />
           <input type="number" min="0.01" step="0.01" value={paymentAmount} onChange={(event) => setPaymentAmount(event.target.value)} className="h-10 rounded-lg border px-3" />
-          <button disabled={busy} className="h-10 rounded-lg bg-[#007a49] px-4 text-sm font-black text-white disabled:opacity-50">Registrar/atualizar</button>
+          <button disabled={busy} className="h-10 rounded-lg bg-[#3157d5] px-4 text-sm font-black text-white shadow-sm shadow-indigo-950/20 disabled:opacity-50">Registrar/atualizar</button>
         </form>
         <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">{participants.map((participant) => {
           const payment = payments.find((item) => item.participant_id === participant.id);
@@ -151,7 +151,7 @@ export function AdminPanel() {
 
       {tab === "schedule" && <div>
         <div className="flex flex-wrap items-center justify-between gap-2 border-b p-4"><div><h3 className="font-black">Agenda e status dos jogos</h3><p className="text-xs text-muted-foreground">Partidas adiadas ficam bloqueadas até receberem nova data e status “Agendado”.</p></div><select value={round} onChange={(event) => setRound(event.target.value === "all" ? "all" : Number(event.target.value))} className="h-10 rounded-lg border px-3 text-sm font-bold"><option value="all">Todas as rodadas</option>{rounds.map((item) => <option key={item} value={item}>Rodada {item}</option>)}</select></div>
-        <div className="max-h-[620px] overflow-auto"><table className="w-full min-w-[860px] text-sm"><thead><tr className="sticky top-0 bg-[#f9faf7] text-left text-[10px] uppercase text-muted-foreground"><th className="p-3">Rodada/jogo</th><th className="p-3">Data e hora</th><th className="p-3">Estádio</th><th className="p-3">Status</th><th className="p-3">Ação</th></tr></thead><tbody>{visibleGames.map((game) => <tr key={game.id} className="border-t"><td className="p-3 font-black">R{game.round} · {game.team1} x {game.team2}</td><td colSpan={4} className="p-2"><form onSubmit={(event) => { event.preventDefault(); run(() => saveGame(game, event.currentTarget), "Partida atualizada."); }} className="grid grid-cols-[180px_1fr_150px_90px] gap-2"><input name="datetime" type="datetime-local" defaultValue={toLocalInput(game.datetime)} required className="h-9 rounded-lg border px-2 text-xs" /><input name="stadium" defaultValue={game.stadium ?? ""} placeholder="Estádio" className="h-9 rounded-lg border px-2 text-xs" /><select name="status" defaultValue={game.status} className="h-9 rounded-lg border px-2 text-xs font-bold"><option value="scheduled">Agendado</option><option value="postponed">Adiado</option><option value="suspended">Suspenso</option><option value="cancelled">Cancelado</option><option value="live">Ao vivo</option><option value="finished">Encerrado</option></select><button disabled={busy} className="h-9 rounded-lg bg-[#007a49] text-xs font-black text-white disabled:opacity-50">Salvar</button></form></td></tr>)}</tbody></table></div>
+        <div className="max-h-[620px] overflow-auto"><table className="w-full min-w-[860px] text-sm"><thead><tr className="sticky top-0 bg-[#f5f7ff] text-left text-[10px] uppercase text-muted-foreground"><th className="p-3">Rodada/jogo</th><th className="p-3">Data e hora</th><th className="p-3">Estádio</th><th className="p-3">Status</th><th className="p-3">Ação</th></tr></thead><tbody>{visibleGames.map((game) => <tr key={game.id} className="border-t"><td className="p-3 font-black">R{game.round} · {game.team1} x {game.team2}</td><td colSpan={4} className="p-2"><form onSubmit={(event) => { event.preventDefault(); run(() => saveGame(game, event.currentTarget), "Partida atualizada."); }} className="grid grid-cols-[180px_1fr_150px_90px] gap-2"><input name="datetime" type="datetime-local" defaultValue={toLocalInput(game.datetime)} required className="h-9 rounded-lg border px-2 text-xs" /><input name="stadium" defaultValue={game.stadium ?? ""} placeholder="Estádio" className="h-9 rounded-lg border px-2 text-xs" /><select name="status" defaultValue={game.status} className="h-9 rounded-lg border px-2 text-xs font-bold"><option value="scheduled">Agendado</option><option value="postponed">Adiado</option><option value="suspended">Suspenso</option><option value="cancelled">Cancelado</option><option value="live">Ao vivo</option><option value="finished">Encerrado</option></select><button disabled={busy} className="h-9 rounded-lg bg-[#3157d5] text-xs font-black text-white disabled:opacity-50">Salvar</button></form></td></tr>)}</tbody></table></div>
       </div>}
 
       {tab === "settings" && <form onSubmit={saveSettings} className="grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -159,7 +159,7 @@ export function AdminPanel() {
         <label className="grid gap-1 text-xs font-black">Doação (%)<input type="number" min="0" max="100" step="0.01" value={donation} onChange={(event) => setDonation(event.target.value)} className="h-10 rounded-lg border px-3 text-sm" /></label>
         <label className="grid gap-1 text-xs font-black">Bloqueio antes do jogo (horas)<input type="number" min="0" max="168" value={lockHours} onChange={(event) => setLockHours(event.target.value)} className="h-10 rounded-lg border px-3 text-sm" /></label>
         <label className="grid gap-1 text-xs font-black">Chave PIX<input value={pixKey} onChange={(event) => setPixKey(event.target.value)} className="h-10 rounded-lg border px-3 text-sm" /></label>
-        <button className="h-10 rounded-lg bg-[#007a49] px-4 text-sm font-black text-white sm:col-span-2 lg:col-span-4">Salvar configurações</button>
+        <button className="h-10 rounded-lg bg-[#3157d5] px-4 text-sm font-black text-white shadow-sm shadow-indigo-950/20 sm:col-span-2 lg:col-span-4">Salvar configurações</button>
       </form>}
     </section>
   );
