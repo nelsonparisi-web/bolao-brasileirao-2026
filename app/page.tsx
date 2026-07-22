@@ -7,6 +7,7 @@ import { GuessesBoard } from "@/components/guesses-board";
 import { ResultsBoard } from "@/components/results-board";
 import { Ranking } from "@/components/ranking";
 import { AdminPanel } from "@/components/admin-panel";
+import { DashboardOverview } from "@/components/dashboard-overview";
 
 export default function Home() {
   return (
@@ -14,6 +15,7 @@ export default function Home() {
       <div className="min-h-screen overflow-x-hidden bg-transparent">
         <Header />
         <main className="mx-auto grid w-full max-w-[1440px] gap-3 px-2 pb-6 sm:px-3 lg:px-4 xl:px-6">
+          <DashboardOverview />
           <Metrics />
           <section id="administracao" className="scroll-mt-3"><AdminPanel /></section>
           <section id="palpites" className="scroll-mt-3"><GuessesBoard /></section>
