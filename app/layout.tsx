@@ -6,8 +6,8 @@ import './globals.css'
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 export const metadata: Metadata = {
-  title: 'Bolao da Copa 2026',
-  description: 'Bolao Beneficente da Copa do Mundo 2026 - Valor por participante R$ 100 - 20% do total será doado',
+  title: "Bolão Brasileirão 2026",
+  description: "Bolão beneficente do Campeonato Brasileiro 2026, com palpites por rodada e ranking em tempo real.",
 }
 
 export default function RootLayout({
