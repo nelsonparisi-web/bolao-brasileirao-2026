@@ -104,12 +104,13 @@ export function Header() {
 
   return (
     <header className="px-2 pt-2 sm:px-3 lg:px-4 xl:px-6">
-      <div className="relative overflow-hidden rounded-2xl border border-green-700/15 bg-gradient-to-br from-[#006b3f] via-[#009b5a] to-[#0a7f52] p-4 text-white shadow-2xl lg:p-5">
-        <div className="absolute -right-14 -top-20 h-52 w-52 rounded-full bg-[#f6c343]/40 blur-2xl" />
+      <div className="relative overflow-hidden rounded-[1.4rem] border border-indigo-300/20 bg-gradient-to-br from-[#080f20] via-[#172554] to-[#4338ca] p-4 text-white shadow-[0_24px_70px_rgba(15,23,42,0.28)] lg:p-6">
+        <div className="absolute -right-14 -top-20 h-56 w-56 rounded-full bg-[#06b6d4]/35 blur-3xl" />
+        <div className="absolute -bottom-24 left-1/3 h-48 w-48 rounded-full bg-[#ff6b6b]/25 blur-3xl" />
         <div className="relative flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] ring-1 ring-white/20">
-              <span className="grid h-7 w-7 place-items-center rounded-full bg-[#f6c343] text-base text-[#14321f]">🏆</span>
+              <span className="grid h-7 w-7 place-items-center rounded-full bg-[#06b6d4] text-base text-[#082f49] shadow-lg shadow-cyan-950/20">🏆</span>
               Brasileirão {settings?.season ?? 2026}
             </div>
             <h1 className="text-3xl font-black leading-tight sm:text-4xl lg:text-5xl">Bolão Beneficente</h1>
@@ -117,7 +118,7 @@ export function Header() {
               Palpites das 38 rodadas, ranking em tempo real e premiação solidária.
             </p>
             <div className="mt-3 flex flex-wrap gap-2 text-xs font-bold">
-              <span className="rounded-full bg-[#f6c343] px-3 py-1 text-[#14321f]">
+              <span className="rounded-full bg-[#06b6d4] px-3 py-1 text-[#082f49] shadow-sm">
                 R$ {Number(settings?.entry_fee ?? 100).toFixed(0)}/pessoa
               </span>
               <span className="rounded-full bg-white/15 px-3 py-1 ring-1 ring-white/20">
@@ -127,10 +128,10 @@ export function Header() {
             </div>
             {isLoggedIn && currentUser && (
               <div className="mt-3 flex flex-wrap gap-2">
-                <button onClick={openGuesses} className="rounded-full bg-[#f6c343] px-5 py-2 text-sm font-black text-[#14321f] shadow-md">Fazer palpites</button>
-                <button onClick={() => document.querySelector("#ranking-completo")?.scrollIntoView({ behavior: "smooth" })} className="rounded-full bg-white px-4 py-2 text-sm font-black text-[#006b3f]">Ranking</button>
+                <button onClick={openGuesses} className="rounded-full bg-[#06b6d4] px-5 py-2 text-sm font-black text-[#082f49] shadow-md shadow-cyan-950/20">Fazer palpites</button>
+                <button onClick={() => document.querySelector("#ranking-completo")?.scrollIntoView({ behavior: "smooth" })} className="rounded-full bg-white px-4 py-2 text-sm font-black text-[#3157d5]">Ranking</button>
                 <button onClick={exportGuesses} className="rounded-full bg-white/15 px-4 py-2 text-sm font-black ring-1 ring-white/25">Exportar CSV</button>
-                {isAdmin && <button onClick={() => document.querySelector("#administracao")?.scrollIntoView({ behavior: "smooth" })} className="rounded-full bg-amber-300 px-4 py-2 text-sm font-black text-amber-950">Administrar</button>}
+                {isAdmin && <button onClick={() => document.querySelector("#administracao")?.scrollIntoView({ behavior: "smooth" })} className="rounded-full bg-[#ff6b6b] px-4 py-2 text-sm font-black text-[#3f1420] shadow-md shadow-rose-950/20">Administrar</button>}
               </div>
             )}
           </div>
@@ -145,13 +146,13 @@ export function Header() {
                 <input type="password" value={passwordConfirmation} onChange={(e) => setPasswordConfirmation(e.target.value)} placeholder="Confirme a nova senha" required minLength={6} className="h-10 rounded-full bg-white px-4 text-sm text-foreground" />
                 {message && <p className={`rounded-xl px-3 py-2 text-xs font-bold ${message.type === "error" ? "bg-red-100 text-red-800" : "bg-green-100 text-green-800"}`}>{message.text}</p>}
                 <div className="flex gap-2">
-                  <button type="submit" className="rounded-full bg-[#f6c343] px-4 py-2 text-xs font-black text-[#14321f]">{submitLabel}</button>
+                  <button type="submit" className="rounded-full bg-[#06b6d4] px-4 py-2 text-xs font-black text-[#082f49]">{submitLabel}</button>
                   <button type="button" onClick={cancelPasswordRecovery} className="rounded-full bg-white/15 px-4 py-2 text-xs font-bold ring-1 ring-white/25">Cancelar</button>
                 </div>
               </form>
             ) : isLoggedIn && currentUser ? (
               <>
-                <span className="rounded-full bg-white px-3 py-2 text-xs font-bold text-[#006b3f]">
+                <span className="rounded-full bg-white px-3 py-2 text-xs font-bold text-[#3157d5]">
                   Olá, {currentUser.name}{currentUser.is_admin ? " · Admin" : ""}
                 </span>
                 <button onClick={() => logout()} className="rounded-full bg-white/15 px-3 py-2 text-xs font-bold ring-1 ring-white/25">Sair</button>
@@ -170,7 +171,7 @@ export function Header() {
                 )}
                 {message && <p className={`rounded-xl px-3 py-2 text-xs font-bold ${message.type === "error" ? "bg-red-100 text-red-800" : "bg-green-100 text-green-800"}`}>{message.text}</p>}
                 <div className="flex flex-wrap gap-2">
-                  <button type="submit" className="rounded-full bg-[#f6c343] px-4 py-2 text-xs font-black text-[#14321f]">{submitLabel}</button>
+                  <button type="submit" className="rounded-full bg-[#06b6d4] px-4 py-2 text-xs font-black text-[#082f49]">{submitLabel}</button>
                   <button type="button" onClick={() => openForm(activeMode === "login" ? "register" : "login")} className="rounded-full bg-white/15 px-4 py-2 text-xs font-bold ring-1 ring-white/25">{activeMode === "login" ? "Participar" : "Entrar"}</button>
                   {activeMode === "login" && <button type="button" onClick={() => openForm("reset")} className="rounded-full bg-white/15 px-4 py-2 text-xs font-bold ring-1 ring-white/25">Esqueci a senha</button>}
                   <button type="button" onClick={closeForm} className="h-8 w-8 rounded-full bg-white/15 font-bold ring-1 ring-white/25">×</button>
@@ -178,8 +179,8 @@ export function Header() {
               </form>
             ) : (
               <>
-                <button onClick={() => openForm("login")} className="rounded-full bg-white px-4 py-2 text-xs font-black text-[#006b3f]">Entrar</button>
-                <button onClick={() => openForm("register")} className="rounded-full bg-[#f6c343] px-4 py-2 text-xs font-black text-[#14321f]">Participar</button>
+                <button onClick={() => openForm("login")} className="rounded-full bg-white px-4 py-2 text-xs font-black text-[#3157d5]">Entrar</button>
+                <button onClick={() => openForm("register")} className="rounded-full bg-[#06b6d4] px-4 py-2 text-xs font-black text-[#082f49]">Participar</button>
               </>
             )}
           </div>
