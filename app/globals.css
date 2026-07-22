@@ -1,0 +1,206 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --bg: #f3f8ef;
+  --ink: #12201b;
+  --muted: #607169;
+  --line: #d9e6d4;
+  --panel: #ffffff;
+  --accent: #009b5a;
+  --accent-strong: #006b3f;
+  --gold: #f6c343;
+  --gold-strong: #d89a00;
+  --red: #c24135;
+  --blue: #1f5fbf;
+
+  --background: #f3f8ef;
+  --foreground: #12201b;
+  --card: rgba(255, 255, 255, 0.92);
+  --card-foreground: #12201b;
+  --popover: #ffffff;
+  --popover-foreground: #12201b;
+  --primary: #009b5a;
+  --primary-foreground: #ffffff;
+  --secondary: #fff9df;
+  --secondary-foreground: #12201b;
+  --muted: #eef6eb;
+  --muted-foreground: #607169;
+  --accent: #009b5a;
+  --accent-foreground: #ffffff;
+  --destructive: #c24135;
+  --destructive-foreground: #ffffff;
+  --border: #d9e6d4;
+  --input: #d9e6d4;
+  --ring: #009b5a;
+  --radius: 0.9rem;
+}
+
+@theme inline {
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: 'Geist Mono', monospace;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-gold: var(--gold);
+  --color-blue: var(--blue);
+  --color-ink: var(--ink);
+  --color-line: var(--line);
+  --color-panel: var(--panel);
+  --color-accent-strong: var(--accent-strong);
+  --radius-sm: calc(var(--radius) - 6px);
+  --radius-md: calc(var(--radius) - 4px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 8px);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    min-height: 100%;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    min-height: 100%;
+    background:
+      radial-gradient(circle at 12% 5%, rgba(246, 195, 67, 0.35), transparent 28%),
+      radial-gradient(circle at 88% 0%, rgba(0, 155, 90, 0.22), transparent 32%),
+      linear-gradient(135deg, #f8fff3 0%, #eef8e8 42%, #fff7d7 100%);
+  }
+}
+
+@layer components {
+  .br-card {
+    border: 1px solid rgba(0, 107, 63, 0.14);
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 14px 38px rgba(18, 32, 27, 0.08);
+    backdrop-filter: blur(14px);
+  }
+
+  .br-button {
+    border-radius: 999px;
+    box-shadow: 0 8px 20px rgba(0, 107, 63, 0.18);
+  }
+
+  .br-yellow-line {
+    border-top: 3px solid var(--gold);
+  }
+}
+
+@layer utilities {
+  main:has(#ranking) {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  main:has(#ranking) > section:first-child {
+    order: 2;
+    margin-top: 0 !important;
+  }
+
+  main:has(#ranking) > div {
+    order: 3;
+  }
+
+  main:has(#ranking) > section:nth-of-type(2) {
+    display: contents;
+  }
+
+  #jogos {
+    display: none !important;
+  }
+
+  #ranking {
+    order: 1;
+    margin-top: 0.75rem;
+  }
+
+  #admin { order: 4; }
+  #palpites { order: 5; }
+  #resultados { order: 6; }
+  #ranking-completo { order: 7; }
+  #financeiro { order: 99; }
+
+  #admin > section > div:first-child {
+    display: none !important;
+  }
+
+  #admin > section > div.grid > div:nth-child(1) {
+    display: none !important;
+  }
+
+  #admin > section > div.grid > div:nth-child(2) {
+    order: 1;
+  }
+
+  #admin > section > div.grid > div:nth-child(6) {
+    order: 2;
+  }
+
+  #admin > section > div.grid > div:nth-child(3) {
+    order: 3;
+  }
+
+  #admin > section > div.grid > div:nth-child(5) {
+    order: 4;
+  }
+
+  #admin > section > div.grid > div:nth-child(7) {
+    order: 5;
+  }
+
+  #admin > section > div.grid > div:nth-child(4) {
+    display: none !important;
+  }
+
+  #palpites .overflow-auto,
+  #resultados .overflow-auto {
+    max-width: 100%;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    border: 1px solid var(--line);
+    border-radius: 0.9rem;
+    scrollbar-width: auto;
+  }
+
+  #palpites .overflow-auto::-webkit-scrollbar,
+  #resultados .overflow-auto::-webkit-scrollbar {
+    height: 12px;
+  }
+
+  #palpites .overflow-auto::-webkit-scrollbar-track,
+  #resultados .overflow-auto::-webkit-scrollbar-track {
+    border-radius: 999px;
+    background: #eef6eb;
+  }
+
+  #palpites .overflow-auto::-webkit-scrollbar-thumb,
+  #resultados .overflow-auto::-webkit-scrollbar-thumb {
+    border: 2px solid #eef6eb;
+    border-radius: 999px;
+    background: var(--accent-strong);
+  }
+}
