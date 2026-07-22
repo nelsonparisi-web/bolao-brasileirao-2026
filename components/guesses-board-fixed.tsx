@@ -38,7 +38,7 @@ export function GuessesBoard() {
   return (
     <section className="overflow-hidden rounded-2xl border border-white/70 bg-white/90 shadow-xl">
       <header className="flex flex-wrap items-end justify-between gap-3 border-b p-4">
-        <div><p className="text-[10px] font-black uppercase tracking-widest text-[#007a49]">Seus palpites</p><h2 className="text-xl font-black">Rodada {round}</h2><p className="text-xs text-muted-foreground">O bloqueio ocorre {settings?.guess_lock_hours ?? 6} horas antes de cada jogo.</p></div>
+        <div><p className="text-[10px] font-black uppercase tracking-widest text-[#3157d5]">Seus palpites</p><h2 className="text-xl font-black">Rodada {round}</h2><p className="text-xs text-muted-foreground">O bloqueio ocorre {settings?.guess_lock_hours ?? 6} horas antes de cada jogo.</p></div>
         <select value={round} onChange={(e) => setRound(Number(e.target.value))} className="h-10 rounded-xl border bg-white px-3 text-sm font-bold">
           {(rounds.length ? rounds : Array.from({ length: 38 }, (_, index) => index + 1)).map((item) => <option key={item} value={item}>Rodada {item}</option>)}
         </select>
@@ -46,7 +46,7 @@ export function GuessesBoard() {
       {message && <p className="mx-4 mt-3 rounded-xl bg-secondary px-3 py-2 text-xs font-bold">{message}</p>}
       <div className="overflow-x-auto">
         <table className="w-full min-w-[620px] border-collapse text-sm">
-          <thead><tr className="bg-[#f9faf7] text-left text-[10px] uppercase text-muted-foreground"><th className="p-3">Data</th><th className="p-3">Partida</th><th className="p-3">Palpite</th><th className="p-3">Resultado</th><th className="p-3">Pts</th></tr></thead>
+          <thead><tr className="bg-[#f5f7ff] text-left text-[10px] uppercase text-muted-foreground"><th className="p-3">Data</th><th className="p-3">Partida</th><th className="p-3">Palpite</th><th className="p-3">Resultado</th><th className="p-3">Pts</th></tr></thead>
           <tbody>
             {roundGames.map((game) => {
               const draft = draftFor(game.id);
@@ -55,7 +55,7 @@ export function GuessesBoard() {
               return <tr key={game.id} className="border-t">
                 <td className="p-3 text-xs">{formatDate(game.datetime)}</td>
                 <td className="p-3 font-black">{game.team1} <span className="font-normal text-muted-foreground">x</span> {game.team2}<small className="block font-normal text-muted-foreground">{game.stadium || ""}</small></td>
-                <td className="p-3"><div className="flex items-center gap-2"><input value={draft.score1} disabled={locked} onChange={(e) => updateDraft(game.id, "score1", e.target.value)} className="h-9 w-12 rounded-lg border text-center font-black" /><span>x</span><input value={draft.score2} disabled={locked} onChange={(e) => updateDraft(game.id, "score2", e.target.value)} className="h-9 w-12 rounded-lg border text-center font-black" /><button disabled={locked || saving === game.id} onClick={() => save(game.id)} className="rounded-lg bg-[#007a49] px-3 py-2 text-xs font-black text-white disabled:opacity-40">{saving === game.id ? "..." : "Salvar"}</button></div></td>
+                <td className="p-3"><div className="flex items-center gap-2"><input value={draft.score1} disabled={locked} onChange={(e) => updateDraft(game.id, "score1", e.target.value)} className="h-9 w-12 rounded-lg border text-center font-black" /><span>x</span><input value={draft.score2} disabled={locked} onChange={(e) => updateDraft(game.id, "score2", e.target.value)} className="h-9 w-12 rounded-lg border text-center font-black" /><button disabled={locked || saving === game.id} onClick={() => save(game.id)} className="rounded-lg bg-[#3157d5] px-3 py-2 text-xs font-black text-white shadow-sm shadow-indigo-950/20 disabled:opacity-40">{saving === game.id ? "..." : "Salvar"}</button></div></td>
                 <td className="p-3 font-bold">{game.score1 === null || game.score2 === null ? "—" : `${game.score1} x ${game.score2}`}</td>
                 <td className="p-3 font-black">{scoreGuess(game, guess)}</td>
               </tr>;
