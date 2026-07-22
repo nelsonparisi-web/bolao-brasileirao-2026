@@ -11,7 +11,7 @@ import { AdminPanel } from "@/components/admin-panel";
 export default function Home() {
   return (
     <BolaoProvider>
-      <div className="min-h-screen overflow-x-hidden bg-[#f6f7f4]">
+      <div className="min-h-screen overflow-x-hidden bg-transparent">
         <Header />
         <main className="mx-auto grid w-full max-w-[1440px] gap-3 px-2 pb-6 sm:px-3 lg:px-4 xl:px-6">
           <Metrics />
