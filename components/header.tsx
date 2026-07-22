@@ -4,12 +4,13 @@ import { useState } from "react";
 import { useBolao } from "./bolao-context";
 import { APP_VERSION } from "@/lib/data";
 
-type AuthMode = "login" | "register" | "reset";
+type AuthMode = "login" | "register" | "reset" | "new-password";
 
 export function Header() {
   const {
-    games, getGuess, login, register, requestPasswordReset, logout,
-    currentUser, isLoggedIn, loading, settings,
+    games, getGuess, login, register, requestPasswordReset, updatePassword,
+    cancelPasswordRecovery, logout, currentUser, isLoggedIn,
+    isPasswordRecovery, loading, settings,
     selectedParticipantId, setSelectedParticipantId,
   } = useBolao();
 
@@ -19,6 +20,7 @@ export function Header() {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
+  const [passwordConfirmation, setPasswordConfirmation] = useState("");
   const [message, setMessage] = useState<{ type: "error" | "success"; text: string } | null>(null);
 
   const closeForm = () => {
@@ -28,6 +30,7 @@ export function Header() {
     setEmail("");
     setPhone("");
     setPassword("");
+    setPasswordConfirmation("");
     setMessage(null);
   };
 
@@ -40,18 +43,31 @@ export function Header() {
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setMessage(null);
-    const result = authMode === "login"
+    const activeMode: AuthMode = isPasswordRecovery ? "new-password" : authMode;
+    if (activeMode === "new-password" && password !== passwordConfirmation) {
+      setMessage({ type: "error", text: "As senhas não conferem." });
+      return;
+    }
+    const result = activeMode === "login"
       ? await login(email, password)
-      : authMode === "register"
+      : activeMode === "register"
         ? await register(name, email, password, phone)
-        : await requestPasswordReset(email);
+        : activeMode === "reset"
+          ? await requestPasswordReset(email)
+          : await updatePassword(password);
 
     if (!result.success) {
       setMessage({ type: "error", text: result.error || "Não foi possível continuar." });
       return;
     }
-    if (authMode === "reset") {
+    if (activeMode === "reset") {
       setMessage({ type: "success", text: "Enviamos as instruções de redefinição para seu e-mail." });
+      return;
+    }
+    if (activeMode === "new-password") {
+      setMessage({ type: "success", text: "Senha alterada. Sua sessão está ativa." });
+      setPassword("");
+      setPasswordConfirmation("");
       return;
     }
     closeForm();
@@ -83,7 +99,8 @@ export function Header() {
     URL.revokeObjectURL(link.href);
   };
 
-  const submitLabel = authMode === "login" ? "Entrar" : authMode === "register" ? "Cadastrar" : "Enviar e-mail";
+  const activeMode: AuthMode = isPasswordRecovery ? "new-password" : authMode;
+  const submitLabel = activeMode === "login" ? "Entrar" : activeMode === "register" ? "Cadastrar" : activeMode === "reset" ? "Enviar e-mail" : "Salvar nova senha";
 
   return (
     <header className="px-2 pt-2 sm:px-3 lg:px-4 xl:px-6">
@@ -120,6 +137,17 @@ export function Header() {
           <div className="relative flex max-w-full flex-wrap items-center gap-2 rounded-2xl bg-white/12 p-2 ring-1 ring-white/20 backdrop-blur-md">
             {loading ? (
               <div className="h-9 w-24 animate-pulse rounded-full bg-white/20" />
+            ) : isPasswordRecovery ? (
+              <form onSubmit={handleSubmit} className="grid w-full min-w-[280px] gap-2 sm:w-[420px]">
+                <strong className="text-sm">Defina sua nova senha</strong>
+                <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Nova senha (mínimo 6 caracteres)" required minLength={6} className="h-10 rounded-full bg-white px-4 text-sm text-foreground" />
+                <input type="password" value={passwordConfirmation} onChange={(e) => setPasswordConfirmation(e.target.value)} placeholder="Confirme a nova senha" required minLength={6} className="h-10 rounded-full bg-white px-4 text-sm text-foreground" />
+                {message && <p className={`rounded-xl px-3 py-2 text-xs font-bold ${message.type === "error" ? "bg-red-100 text-red-800" : "bg-green-100 text-green-800"}`}>{message.text}</p>}
+                <div className="flex gap-2">
+                  <button type="submit" className="rounded-full bg-[#f6c343] px-4 py-2 text-xs font-black text-[#14321f]">{submitLabel}</button>
+                  <button type="button" onClick={cancelPasswordRecovery} className="rounded-full bg-white/15 px-4 py-2 text-xs font-bold ring-1 ring-white/25">Cancelar</button>
+                </div>
+              </form>
             ) : isLoggedIn && currentUser ? (
               <>
                 <span className="rounded-full bg-white px-3 py-2 text-xs font-bold text-[#006b3f]">
@@ -129,21 +157,21 @@ export function Header() {
               </>
             ) : showForm ? (
               <form onSubmit={handleSubmit} className="grid w-full min-w-[280px] gap-2 sm:w-[420px]">
-                {authMode === "register" && (
+                {activeMode === "register" && (
                   <>
                     <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Nome" className="h-10 rounded-full bg-white px-4 text-sm text-foreground" />
                     <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Celular com DDD" inputMode="tel" className="h-10 rounded-full bg-white px-4 text-sm text-foreground" />
                   </>
                 )}
                 <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="E-mail" required className="h-10 rounded-full bg-white px-4 text-sm text-foreground" />
-                {authMode !== "reset" && (
+                {activeMode !== "reset" && (
                   <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Senha" required className="h-10 rounded-full bg-white px-4 text-sm text-foreground" />
                 )}
                 {message && <p className={`rounded-xl px-3 py-2 text-xs font-bold ${message.type === "error" ? "bg-red-100 text-red-800" : "bg-green-100 text-green-800"}`}>{message.text}</p>}
                 <div className="flex flex-wrap gap-2">
                   <button type="submit" className="rounded-full bg-[#f6c343] px-4 py-2 text-xs font-black text-[#14321f]">{submitLabel}</button>
-                  <button type="button" onClick={() => openForm(authMode === "login" ? "register" : "login")} className="rounded-full bg-white/15 px-4 py-2 text-xs font-bold ring-1 ring-white/25">{authMode === "login" ? "Participar" : "Entrar"}</button>
-                  {authMode === "login" && <button type="button" onClick={() => openForm("reset")} className="rounded-full bg-white/15 px-4 py-2 text-xs font-bold ring-1 ring-white/25">Esqueci a senha</button>}
+                  <button type="button" onClick={() => openForm(activeMode === "login" ? "register" : "login")} className="rounded-full bg-white/15 px-4 py-2 text-xs font-bold ring-1 ring-white/25">{activeMode === "login" ? "Participar" : "Entrar"}</button>
+                  {activeMode === "login" && <button type="button" onClick={() => openForm("reset")} className="rounded-full bg-white/15 px-4 py-2 text-xs font-bold ring-1 ring-white/25">Esqueci a senha</button>}
                   <button type="button" onClick={closeForm} className="h-8 w-8 rounded-full bg-white/15 font-bold ring-1 ring-white/25">×</button>
                 </div>
               </form>
