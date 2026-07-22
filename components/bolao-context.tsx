@@ -27,11 +27,14 @@ interface BolaoContextType {
   selectedParticipantId: string | null;
   isAdmin: boolean;
   isLoggedIn: boolean;
+  isPasswordRecovery: boolean;
   loading: boolean;
   setSelectedParticipantId: (id: string | null) => void;
   login: (email: string, password: string) => Promise<SaveResult>;
   register: (name: string, email: string, password: string, phone: string) => Promise<SaveResult>;
   requestPasswordReset: (email: string) => Promise<SaveResult>;
+  updatePassword: (password: string) => Promise<SaveResult>;
+  cancelPasswordRecovery: () => void;
   logout: () => Promise<void>;
   renameParticipant: (id: string, newName: string) => Promise<boolean>;
   deleteParticipant: (id: string) => Promise<boolean>;
@@ -81,6 +84,7 @@ export function BolaoProvider({ children }: { children: ReactNode }) {
   const [settings, setSettings] = useState<Settings | null>(null);
   const [currentUser, setCurrentUser] = useState<Participant | null>(null);
   const [selectedParticipantId, setSelectedParticipantId] = useState<string | null>(null);
+  const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const getClient = useCallback(() => createClient(), []);
@@ -134,7 +138,8 @@ export function BolaoProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const supabase = getClient();
     refreshData();
-    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "PASSWORD_RECOVERY") setIsPasswordRecovery(true);
       if (!session?.user) {
         setCurrentUser(null);
         setSelectedParticipantId(null);
@@ -186,6 +191,19 @@ export function BolaoProvider({ children }: { children: ReactNode }) {
     const { error } = await getClient().auth.resetPasswordForEmail(email.trim(), { redirectTo });
     return error ? { success: false, error: authError(error.message) } : { success: true };
   }, [getClient]);
+
+  const updatePassword = useCallback(async (password: string): Promise<SaveResult> => {
+    if (password.length < 6) {
+      return { success: false, error: "A nova senha deve ter pelo menos 6 caracteres." };
+    }
+    const { error } = await getClient().auth.updateUser({ password });
+    if (error) return { success: false, error: authError(error.message) };
+    setIsPasswordRecovery(false);
+    await refreshData();
+    return { success: true };
+  }, [getClient, refreshData]);
+
+  const cancelPasswordRecovery = useCallback(() => setIsPasswordRecovery(false), []);
 
   const logout = useCallback(async () => {
     await getClient().auth.signOut();
@@ -310,8 +328,9 @@ export function BolaoProvider({ children }: { children: ReactNode }) {
     <BolaoContext.Provider value={{
       participants, games, teams, guesses, payments, settings, currentUser,
       selectedParticipantId, isAdmin: Boolean(currentUser?.is_admin),
-      isLoggedIn: Boolean(currentUser), loading, setSelectedParticipantId,
-      login, register, requestPasswordReset, logout, renameParticipant,
+      isLoggedIn: Boolean(currentUser), isPasswordRecovery, loading, setSelectedParticipantId,
+      login, register, requestPasswordReset, updatePassword, cancelPasswordRecovery,
+      logout, renameParticipant,
       deleteParticipant, setGuess, saveGuess, setRealScore, getGuess,
       getRanking, getMetrics, addPayment, removePayment,
       getParticipantPaymentStatus, resetParticipantPassword, refreshData,
