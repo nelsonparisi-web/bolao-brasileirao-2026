@@ -68,7 +68,7 @@ export interface Settings {
   pix_key?: string | null;
 }
 
-export const APP_VERSION = "v0.1.0";
+export const APP_VERSION = "v0.1.1";
 export const APP_VERSION_DATE = "21/07/2026";
 export const APP_VERSION_TIME = "21:55";
 export const APP_COMMIT = "base segura do Brasileirão";
