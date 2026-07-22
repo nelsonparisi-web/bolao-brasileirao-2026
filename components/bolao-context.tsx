@@ -41,6 +41,8 @@ interface BolaoContextType {
   saveGuess: (participantId: string, gameId: number, score1: string, score2: string) => Promise<SaveResult>;
   setGuess: (participantId: string, gameId: number, field: "score1" | "score2", value: string) => Promise<void>;
   setRealScore: (gameId: number, field: "score1" | "score2", value: string) => Promise<void>;
+  updateGame: (gameId: number, changes: Partial<Pick<Game, "datetime" | "stadium" | "status">>) => Promise<SaveResult>;
+  updateSettings: (changes: Partial<Pick<Settings, "entry_fee" | "donation_percent" | "guess_lock_hours" | "pix_key">>) => Promise<SaveResult>;
   getGuess: (participantId: string, gameId: number) => Guess | undefined;
   getRanking: () => { participant: Participant; points: number }[];
   getMetrics: () => { participantsCount: number; gamesCount: number; totalPot: number; donationAmount: number; completedGames: number };
@@ -277,6 +279,27 @@ export function BolaoProvider({ children }: { children: ReactNode }) {
     await refreshData();
   }, [currentUser?.is_admin, games, getClient, refreshData]);
 
+  const updateGame = useCallback(async (
+    gameId: number,
+    changes: Partial<Pick<Game, "datetime" | "stadium" | "status">>
+  ): Promise<SaveResult> => {
+    if (!currentUser?.is_admin) return { success: false, error: "Apenas o administrador pode alterar partidas." };
+    const { error } = await getClient().from("games").update(changes).eq("id", gameId);
+    if (error) return { success: false, error: error.message };
+    await refreshData();
+    return { success: true };
+  }, [currentUser?.is_admin, getClient, refreshData]);
+
+  const updateSettings = useCallback(async (
+    changes: Partial<Pick<Settings, "entry_fee" | "donation_percent" | "guess_lock_hours" | "pix_key">>
+  ): Promise<SaveResult> => {
+    if (!currentUser?.is_admin) return { success: false, error: "Apenas o administrador pode alterar as configurações." };
+    const { error } = await getClient().from("settings").update(changes).eq("id", 1);
+    if (error) return { success: false, error: error.message };
+    await refreshData();
+    return { success: true };
+  }, [currentUser?.is_admin, getClient, refreshData]);
+
   const getRanking = useCallback(() =>
     participants.map((participant) => ({
       participant,
@@ -331,7 +354,7 @@ export function BolaoProvider({ children }: { children: ReactNode }) {
       isLoggedIn: Boolean(currentUser), isPasswordRecovery, loading, setSelectedParticipantId,
       login, register, requestPasswordReset, updatePassword, cancelPasswordRecovery,
       logout, renameParticipant,
-      deleteParticipant, setGuess, saveGuess, setRealScore, getGuess,
+      deleteParticipant, setGuess, saveGuess, setRealScore, updateGame, updateSettings, getGuess,
       getRanking, getMetrics, addPayment, removePayment,
       getParticipantPaymentStatus, resetParticipantPassword, refreshData,
     }}>
