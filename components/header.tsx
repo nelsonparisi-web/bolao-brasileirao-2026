@@ -11,7 +11,7 @@ export function Header() {
     games, getGuess, login, register, requestPasswordReset, updatePassword,
     cancelPasswordRecovery, logout, currentUser, isLoggedIn,
     isPasswordRecovery, loading, settings,
-    selectedParticipantId, setSelectedParticipantId,
+    selectedParticipantId, setSelectedParticipantId, isAdmin,
   } = useBolao();
 
   const [showForm, setShowForm] = useState(false);
@@ -130,6 +130,7 @@ export function Header() {
                 <button onClick={openGuesses} className="rounded-full bg-[#f6c343] px-5 py-2 text-sm font-black text-[#14321f] shadow-md">Fazer palpites</button>
                 <button onClick={() => document.querySelector("#ranking-completo")?.scrollIntoView({ behavior: "smooth" })} className="rounded-full bg-white px-4 py-2 text-sm font-black text-[#006b3f]">Ranking</button>
                 <button onClick={exportGuesses} className="rounded-full bg-white/15 px-4 py-2 text-sm font-black ring-1 ring-white/25">Exportar CSV</button>
+                {isAdmin && <button onClick={() => document.querySelector("#administracao")?.scrollIntoView({ behavior: "smooth" })} className="rounded-full bg-amber-300 px-4 py-2 text-sm font-black text-amber-950">Administrar</button>}
               </div>
             )}
           </div>
