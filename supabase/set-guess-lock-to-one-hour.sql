@@ -8,6 +8,24 @@ update public.settings
 set guess_lock_hours = 1
 where id = 1;
 
+-- Todos os participantes autenticados podem consultar os palpites,
+-- mas cada um só pode inserir ou alterar os próprios registros.
+drop policy if exists guesses_insert_own_or_admin on public.guesses;
+drop policy if exists guesses_update_own_or_admin on public.guesses;
+drop policy if exists guesses_insert on public.guesses;
+drop policy if exists guesses_update on public.guesses;
+drop policy if exists guesses_insert_own on public.guesses;
+drop policy if exists guesses_update_own on public.guesses;
+
+create policy guesses_insert_own on public.guesses
+for insert to authenticated
+with check (participant_id = auth.uid());
+
+create policy guesses_update_own on public.guesses
+for update to authenticated
+using (participant_id = auth.uid())
+with check (participant_id = auth.uid());
+
 create or replace function public.validate_guess_deadline()
 returns trigger
 language plpgsql
