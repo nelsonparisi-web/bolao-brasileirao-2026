@@ -32,7 +32,7 @@ export function AdminPanel() {
   const [round, setRound] = useState<number | "all">("all");
   const [fee, setFee] = useState(String(settings?.entry_fee ?? 100));
   const [donation, setDonation] = useState(String(settings?.donation_percent ?? 20));
-  const [lockHours, setLockHours] = useState(String(settings?.guess_lock_hours ?? 6));
+  const [lockHours, setLockHours] = useState(String(settings?.guess_lock_hours ?? 1));
   const [pixKey, setPixKey] = useState(settings?.pix_key ?? "");
 
   useEffect(() => {
@@ -43,7 +43,7 @@ export function AdminPanel() {
   useEffect(() => {
     setFee(String(settings?.entry_fee ?? 100));
     setDonation(String(settings?.donation_percent ?? 20));
-    setLockHours(String(settings?.guess_lock_hours ?? 6));
+    setLockHours(String(settings?.guess_lock_hours ?? 1));
     setPixKey(settings?.pix_key ?? "");
     setPaymentAmount(String(settings?.entry_fee ?? 100));
   }, [settings]);
