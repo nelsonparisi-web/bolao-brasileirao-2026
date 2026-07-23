@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useBolao } from "./bolao-context";
 import { APP_VERSION } from "@/lib/data";
 
@@ -125,6 +126,9 @@ export function Header() {
                 {Number(settings?.donation_percent ?? 20)}% para doação
               </span>
               <span className="rounded-full bg-white/15 px-3 py-1 ring-1 ring-white/20">{APP_VERSION}</span>
+              <Link href="/manual" className="rounded-full bg-white px-3 py-1 font-black text-[#3157d5] shadow-sm hover:bg-cyan-50">
+                Ajuda
+              </Link>
             </div>
             {isLoggedIn && currentUser && (
               <div className="mt-3 flex flex-wrap gap-2">
