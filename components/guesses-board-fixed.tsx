@@ -5,7 +5,7 @@ import { useBolao } from "./bolao-context";
 import { formatDate, isGuessLocked, scoreGuess } from "@/lib/data";
 
 export function GuessesBoard() {
-  const { games, participants, currentUser, getGuess, saveGuess, settings, loading } = useBolao();
+  const { games, participants, currentUser, getGuess, saveGuess, loading } = useBolao();
   const [round, setRound] = useState<number | null>(null);
   const [viewedParticipantId, setViewedParticipantId] = useState<string>("");
   const [drafts, setDrafts] = useState<Record<string, { score1: string; score2: string }>>({});
@@ -13,15 +13,21 @@ export function GuessesBoard() {
   const [message, setMessage] = useState("");
 
   const rounds = useMemo(() => Array.from(new Set(games.map((game) => game.round))).sort((a, b) => a - b), [games]);
-  const selectedRound = round && rounds.includes(round) ? round : rounds[0] ?? 1;
+  const firstOpenRound = useMemo(() => {
+    const openGame = games.find((game) => !isGuessLocked(game, 1));
+    return openGame?.round ?? rounds[0] ?? 1;
+  }, [games, rounds]);
+  const selectedRound = round && rounds.includes(round) ? round : firstOpenRound;
   const selectedParticipantId = viewedParticipantId || currentUser?.id || "";
   const selectedParticipant = participants.find((participant) => participant.id === selectedParticipantId) ?? currentUser;
   const canEdit = selectedParticipantId === currentUser?.id;
   const roundGames = useMemo(() => games.filter((game) => game.round === selectedRound), [games, selectedRound]);
 
   useEffect(() => {
-    if (currentUser && !viewedParticipantId) setViewedParticipantId(currentUser.id);
-  }, [currentUser, viewedParticipantId]);
+    setViewedParticipantId(currentUser?.id ?? "");
+    setDrafts({});
+    setMessage("");
+  }, [currentUser?.id]);
 
   if (loading) return <section className="h-48 animate-pulse rounded-2xl bg-white shadow-lg" />;
   if (!currentUser) return <section className="rounded-2xl bg-white p-5 shadow-lg"><h2 className="text-xl font-black">Palpites</h2><p className="mt-2 text-sm text-muted-foreground">Entre para registrar seus palpites.</p></section>;
@@ -51,7 +57,7 @@ export function GuessesBoard() {
   return (
     <section className="overflow-hidden rounded-2xl border border-white/70 bg-white/90 shadow-xl">
       <header className="flex flex-wrap items-end justify-between gap-3 border-b p-4">
-        <div><p className="text-[10px] font-black uppercase tracking-widest text-[#3157d5]">{canEdit ? "Seus palpites" : `Palpites de ${selectedParticipant?.name ?? "participante"}`}</p><h2 className="text-xl font-black">Rodada {selectedRound}</h2><p className="text-xs text-muted-foreground">{canEdit ? `Você pode alterar até ${settings?.guess_lock_hours ?? 1} hora antes de cada jogo.` : "Visualização somente leitura."}</p></div>
+        <div><p className="text-[10px] font-black uppercase tracking-widest text-[#3157d5]">{canEdit ? "Seus palpites" : `Palpites de ${selectedParticipant?.name ?? "participante"}`}</p><h2 className="text-xl font-black">Rodada {selectedRound}</h2><p className="text-xs text-muted-foreground">{canEdit ? "Palpites liberados até 1 hora antes de cada jogo." : "Palpites de outros participantes: visualização somente leitura."}</p></div>
         <div className="flex flex-wrap gap-2">
           <label className="grid gap-1 text-[10px] font-black uppercase text-muted-foreground">Participante
             <select value={selectedParticipantId} onChange={(e) => { setViewedParticipantId(e.target.value); setMessage(""); }} className="h-10 min-w-48 rounded-xl border bg-white px-3 text-sm font-bold normal-case text-foreground">
@@ -73,7 +79,7 @@ export function GuessesBoard() {
             {roundGames.map((game) => {
               const draft = draftFor(game.id);
               const guess = getGuess(selectedParticipantId, game.id);
-              const locked = isGuessLocked(game, settings?.guess_lock_hours ?? 1);
+              const locked = isGuessLocked(game, 1);
               return <tr key={game.id} className="border-t">
                 <td className="p-3 text-xs">{formatDate(game.datetime)}</td>
                 <td className="p-3 font-black">{game.team1} <span className="font-normal text-muted-foreground">x</span> {game.team2}<small className="block font-normal text-muted-foreground">{game.stadium || ""}</small></td>
