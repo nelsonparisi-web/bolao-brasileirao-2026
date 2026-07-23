@@ -132,7 +132,7 @@ export function formatDate(date: string): string {
 }
 
 export function isGuessLocked(game: Game, lockHours = 1): boolean {
-  if (game.status !== "scheduled") return true;
+  if (!["scheduled", "postponed"].includes(game.status)) return true;
   return Date.now() >= parseGameDate(game.datetime).getTime() - lockHours * 60 * 60 * 1000;
 }
 
