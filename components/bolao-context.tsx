@@ -242,7 +242,7 @@ export function BolaoProvider({ children }: { children: ReactNode }) {
     }
     const game = games.find((item) => Number(item.id) === Number(gameId));
     if (!game) return { success: false, error: "Jogo não encontrado." };
-    if (isGuessLocked(game, settings?.guess_lock_hours ?? 1)) {
+    if (isGuessLocked(game, 1)) {
       return { success: false, error: "Os palpites desta partida já foram encerrados." };
     }
 
@@ -253,7 +253,7 @@ export function BolaoProvider({ children }: { children: ReactNode }) {
     if (error) return { success: false, error: error.message };
     setGuesses((items) => [...items.filter((item) => !(item.participant_id === participantId && Number(item.game_id) === gameId)), data as Guess]);
     return { success: true };
-  }, [currentUser, games, settings?.guess_lock_hours, getClient]);
+  }, [currentUser, games, getClient]);
 
   const setGuess = useCallback(async (participantId: string, gameId: number, field: "score1" | "score2", value: string) => {
     const existing = getGuess(participantId, gameId);
