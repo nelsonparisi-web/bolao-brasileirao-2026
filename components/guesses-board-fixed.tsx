@@ -80,10 +80,17 @@ export function GuessesBoard() {
               const draft = draftFor(game.id);
               const guess = getGuess(selectedParticipantId, game.id);
               const locked = isGuessLocked(game, 1);
+              const saved = Boolean(
+                guess
+                && guess.score1 !== null
+                && guess.score2 !== null
+                && String(guess.score1) === draft.score1
+                && String(guess.score2) === draft.score2
+              );
               return <tr key={game.id} className="border-t">
                 <td className="p-3 text-xs">{formatDate(game.datetime)}</td>
                 <td className="p-3 font-black">{game.team1} <span className="font-normal text-muted-foreground">x</span> {game.team2}<small className="block font-normal text-muted-foreground">{game.stadium || ""}</small></td>
-                <td className="p-3"><div className="flex items-center gap-2"><input value={draft.score1} disabled={locked || !canEdit} onChange={(e) => updateDraft(game.id, "score1", e.target.value)} className="h-9 w-12 rounded-lg border text-center font-black disabled:bg-slate-100" /><span>x</span><input value={draft.score2} disabled={locked || !canEdit} onChange={(e) => updateDraft(game.id, "score2", e.target.value)} className="h-9 w-12 rounded-lg border text-center font-black disabled:bg-slate-100" />{canEdit && <button disabled={locked || saving === game.id} onClick={() => save(game.id)} className="rounded-lg bg-[#3157d5] px-3 py-2 text-xs font-black text-white shadow-sm shadow-indigo-950/20 disabled:opacity-40">{saving === game.id ? "..." : "Salvar"}</button>}</div></td>
+                <td className="p-3"><div className="flex items-center gap-2"><input value={draft.score1} disabled={locked || !canEdit} onChange={(e) => updateDraft(game.id, "score1", e.target.value)} className="h-9 w-12 rounded-lg border text-center font-black disabled:bg-slate-100" /><span>x</span><input value={draft.score2} disabled={locked || !canEdit} onChange={(e) => updateDraft(game.id, "score2", e.target.value)} className="h-9 w-12 rounded-lg border text-center font-black disabled:bg-slate-100" />{canEdit && <button disabled={locked || saving === game.id || saved} onClick={() => save(game.id)} className={`rounded-lg px-3 py-2 text-xs font-black text-white shadow-sm disabled:opacity-100 ${saved ? "bg-emerald-600 shadow-emerald-950/20" : "bg-[#3157d5] shadow-indigo-950/20 disabled:opacity-40"}`}>{saving === game.id ? "..." : saved ? "Salvo" : "Salvar"}</button>}</div></td>
                 <td className="p-3 font-bold">{game.score1 === null || game.score2 === null ? "—" : `${game.score1} x ${game.score2}`}</td>
                 <td className="p-3 font-black">{scoreGuess(game, guess)}</td>
               </tr>;
