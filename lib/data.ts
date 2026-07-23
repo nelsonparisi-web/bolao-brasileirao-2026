@@ -72,7 +72,7 @@ export const APP_VERSION = "v0.1.1";
 export const APP_VERSION_DATE = "21/07/2026";
 export const APP_VERSION_TIME = "21:55";
 export const APP_COMMIT = "base segura do Brasileirão";
-export const GUESS_LOCK_WINDOW_MS = 6 * 60 * 60 * 1000;
+export const GUESS_LOCK_WINDOW_MS = 60 * 60 * 1000;
 
 export const currency = new Intl.NumberFormat("pt-BR", {
   style: "currency",
@@ -131,7 +131,7 @@ export function formatDate(date: string): string {
   }).format(parsed);
 }
 
-export function isGuessLocked(game: Game, lockHours = 6): boolean {
+export function isGuessLocked(game: Game, lockHours = 1): boolean {
   if (game.status !== "scheduled") return true;
   return Date.now() >= parseGameDate(game.datetime).getTime() - lockHours * 60 * 60 * 1000;
 }
