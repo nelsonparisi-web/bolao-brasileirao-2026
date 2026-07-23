@@ -41,6 +41,7 @@ interface BolaoContextType {
   saveGuess: (participantId: string, gameId: number, score1: string, score2: string) => Promise<SaveResult>;
   setGuess: (participantId: string, gameId: number, field: "score1" | "score2", value: string) => Promise<void>;
   setRealScore: (gameId: number, field: "score1" | "score2", value: string) => Promise<void>;
+  saveResult: (gameId: number, score1: string, score2: string) => Promise<SaveResult>;
   updateGame: (gameId: number, changes: Partial<Pick<Game, "datetime" | "stadium" | "status">>) => Promise<SaveResult>;
   updateSettings: (changes: Partial<Pick<Settings, "entry_fee" | "donation_percent" | "guess_lock_hours" | "pix_key">>) => Promise<SaveResult>;
   getGuess: (participantId: string, gameId: number) => Guess | undefined;
@@ -288,6 +289,23 @@ export function BolaoProvider({ children }: { children: ReactNode }) {
     await refreshData();
   }, [currentUser?.is_admin, games, getClient, refreshData]);
 
+  const saveResult = useCallback(async (gameId: number, score1Text: string, score2Text: string): Promise<SaveResult> => {
+    if (!currentUser?.is_admin) return { success: false, error: "Apenas o administrador pode registrar resultados." };
+    const score1 = parseScore(score1Text);
+    const score2 = parseScore(score2Text);
+    if (score1 === undefined || score2 === undefined || score1 === null || score2 === null) {
+      return { success: false, error: "Informe os dois placares entre 0 e 30." };
+    }
+    const { error } = await getClient().from("games").update({
+      score1,
+      score2,
+      status: "finished",
+    }).eq("id", gameId);
+    if (error) return { success: false, error: error.message };
+    await refreshData();
+    return { success: true };
+  }, [currentUser?.is_admin, getClient, refreshData]);
+
   const updateGame = useCallback(async (
     gameId: number,
     changes: Partial<Pick<Game, "datetime" | "stadium" | "status">>
@@ -363,7 +381,7 @@ export function BolaoProvider({ children }: { children: ReactNode }) {
       isLoggedIn: Boolean(currentUser), isPasswordRecovery, loading, setSelectedParticipantId,
       login, register, requestPasswordReset, updatePassword, cancelPasswordRecovery,
       logout, renameParticipant,
-      deleteParticipant, setGuess, saveGuess, setRealScore, updateGame, updateSettings, getGuess,
+      deleteParticipant, setGuess, saveGuess, setRealScore, saveResult, updateGame, updateSettings, getGuess,
       getRanking, getMetrics, addPayment, removePayment,
       getParticipantPaymentStatus, resetParticipantPassword, refreshData,
     }}>
