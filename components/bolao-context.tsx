@@ -232,7 +232,7 @@ export function BolaoProvider({ children }: { children: ReactNode }) {
   [guesses]);
 
   const saveGuess = useCallback(async (participantId: string, gameId: number, score1Text: string, score2Text: string): Promise<SaveResult> => {
-    if (!currentUser || (participantId !== currentUser.id && !currentUser.is_admin)) {
+    if (!currentUser || participantId !== currentUser.id) {
       return { success: false, error: "Você só pode alterar seus próprios palpites." };
     }
     const score1 = parseScore(score1Text);
@@ -242,7 +242,7 @@ export function BolaoProvider({ children }: { children: ReactNode }) {
     }
     const game = games.find((item) => Number(item.id) === Number(gameId));
     if (!game) return { success: false, error: "Jogo não encontrado." };
-    if (isGuessLocked(game, settings?.guess_lock_hours ?? 6)) {
+    if (isGuessLocked(game, settings?.guess_lock_hours ?? 1)) {
       return { success: false, error: "Os palpites desta partida já foram encerrados." };
     }
 
