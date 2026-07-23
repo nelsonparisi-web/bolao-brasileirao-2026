@@ -246,14 +246,23 @@ export function BolaoProvider({ children }: { children: ReactNode }) {
       return { success: false, error: "Os palpites desta partida já foram encerrados." };
     }
 
-    const { data, error } = await getClient().from("guesses").upsert(
+    const { error } = await getClient().from("guesses").upsert(
       { participant_id: participantId, game_id: gameId, score1, score2 },
       { onConflict: "participant_id,game_id" }
-    ).select().single();
-    if (error) return { success: false, error: error.message };
-    setGuesses((items) => [...items.filter((item) => !(item.participant_id === participantId && Number(item.game_id) === gameId)), data as Guess]);
+    );
+    if (error) {
+      const normalized = error.message.toLowerCase();
+      if (normalized.includes("row-level security") || normalized.includes("permission denied")) {
+        return { success: false, error: "O banco recusou a permissão para salvar este palpite." };
+      }
+      if (normalized.includes("encerrados") || normalized.includes("status")) {
+        return { success: false, error: "Este jogo não está liberado para receber palpites." };
+      }
+      return { success: false, error: error.message };
+    }
+    await refreshData();
     return { success: true };
-  }, [currentUser, games, getClient]);
+  }, [currentUser, games, getClient, refreshData]);
 
   const setGuess = useCallback(async (participantId: string, gameId: number, field: "score1" | "score2", value: string) => {
     const existing = getGuess(participantId, gameId);
