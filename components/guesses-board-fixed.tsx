@@ -85,19 +85,17 @@ export function GuessesBoard() {
             && String(guess.score2) === draft.score2
           );
           return <article key={game.id} className="min-w-0 p-4">
-            <div className="flex min-w-0 items-start justify-between gap-3">
-              <div className="min-w-0">
-                <h3 className="break-words text-sm font-black leading-snug">{game.team1} <span className="font-normal text-muted-foreground">x</span> {game.team2}</h3>
-                {game.stadium && <p className="mt-0.5 truncate text-[11px] text-muted-foreground">{game.stadium}</p>}
+            <h3 className="break-words text-sm font-black leading-snug">{game.team1} <span className="font-normal text-muted-foreground">x</span> {game.team2}</h3>
+            <time className="mt-1 block text-[11px] text-muted-foreground">{formatDate(game.datetime)}</time>
+            {game.stadium && <p className="mt-0.5 truncate text-[11px] text-muted-foreground">{game.stadium}</p>}
+            <div className="mt-4">
+              <p className="mb-2 text-[10px] font-black uppercase text-muted-foreground">Palpite</p>
+              <div className="flex items-center gap-2">
+                <input aria-label={`Gols de ${game.team1}`} value={draft.score1} disabled={locked || !canEdit} onChange={(e) => updateDraft(game.id, "score1", e.target.value)} className="block h-10 w-12 shrink-0 rounded-lg border bg-white text-center text-base font-black disabled:bg-slate-100" />
+                <span className="shrink-0">x</span>
+                <input aria-label={`Gols de ${game.team2}`} value={draft.score2} disabled={locked || !canEdit} onChange={(e) => updateDraft(game.id, "score2", e.target.value)} className="block h-10 w-12 shrink-0 rounded-lg border bg-white text-center text-base font-black disabled:bg-slate-100" />
+                {canEdit && <button disabled={locked || saving === game.id || saved} onClick={() => save(game.id)} className={`block h-10 shrink-0 rounded-lg px-4 text-xs font-black text-white shadow-sm disabled:opacity-100 ${saved ? "bg-emerald-600 shadow-emerald-950/20" : "bg-[#3157d5] shadow-indigo-950/20 disabled:opacity-40"}`}>{saving === game.id ? "..." : saved ? "Salvo" : "Salvar"}</button>}
               </div>
-              <time className="shrink-0 whitespace-nowrap text-[11px] text-muted-foreground">{formatDate(game.datetime)}</time>
-            </div>
-            <div className="mt-3 flex w-full flex-wrap items-center gap-2">
-              <span className="mr-auto text-[10px] font-black uppercase text-muted-foreground">Palpite</span>
-              <input value={draft.score1} disabled={locked || !canEdit} onChange={(e) => updateDraft(game.id, "score1", e.target.value)} className="h-9 w-11 rounded-lg border text-center font-black disabled:bg-slate-100" />
-              <span>x</span>
-              <input value={draft.score2} disabled={locked || !canEdit} onChange={(e) => updateDraft(game.id, "score2", e.target.value)} className="h-9 w-11 rounded-lg border text-center font-black disabled:bg-slate-100" />
-              {canEdit && <button disabled={locked || saving === game.id || saved} onClick={() => save(game.id)} className={`rounded-lg px-3 py-2 text-xs font-black text-white shadow-sm disabled:opacity-100 ${saved ? "bg-emerald-600 shadow-emerald-950/20" : "bg-[#3157d5] shadow-indigo-950/20 disabled:opacity-40"}`}>{saving === game.id ? "..." : saved ? "Salvo" : "Salvar"}</button>}
             </div>
             <div className="mt-3 flex items-center justify-between border-t border-dashed pt-2 text-xs">
               <span className="text-muted-foreground">Resultado: <strong className="text-foreground">{game.score1 === null || game.score2 === null ? "—" : `${game.score1} x ${game.score2}`}</strong></span>
