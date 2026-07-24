@@ -56,18 +56,18 @@ export function ResultsBoard() {
           const saved = game.score1 !== null && game.score2 !== null
             && String(game.score1) === draft.score1 && String(game.score2) === draft.score2;
           return <article key={game.id} className="min-w-0 p-4">
-            <div className="flex min-w-0 items-start justify-between gap-3">
-              <h3 className="min-w-0 break-words text-sm font-black leading-snug">{game.team1} x {game.team2}</h3>
-              <time className="shrink-0 whitespace-nowrap text-[11px] text-muted-foreground">{formatDate(game.datetime)}</time>
-            </div>
-            <div className="mt-3 flex w-full flex-wrap items-center gap-2">
-              <span className="mr-auto text-[10px] font-black uppercase text-muted-foreground">Resultado</span>
+            <h3 className="break-words text-sm font-black leading-snug">{game.team1} x {game.team2}</h3>
+            <time className="mt-1 block text-[11px] text-muted-foreground">{formatDate(game.datetime)}</time>
+            <div className="mt-4">
+              <p className="mb-2 text-[10px] font-black uppercase text-muted-foreground">Resultado</p>
+              <div className="flex items-center gap-2">
               {isAdmin ? <>
-                <input value={draft.score1} onChange={(e) => updateDraft(game.id, draft, "score1", e.target.value)} className="h-9 w-11 rounded-lg border text-center font-black" />
-                <span>x</span>
-                <input value={draft.score2} onChange={(e) => updateDraft(game.id, draft, "score2", e.target.value)} className="h-9 w-11 rounded-lg border text-center font-black" />
-                <button disabled={saving === game.id || saved} onClick={() => save(game.id, draft)} className={`rounded-lg px-3 py-2 text-xs font-black text-white ${saved ? "bg-emerald-600" : "bg-[#3157d5] disabled:opacity-40"}`}>{saving === game.id ? "..." : saved ? "Salvo" : "Salvar"}</button>
+                <input aria-label={`Gols de ${game.team1}`} value={draft.score1} onChange={(e) => updateDraft(game.id, draft, "score1", e.target.value)} className="block h-10 w-12 shrink-0 rounded-lg border bg-white text-center text-base font-black" />
+                <span className="shrink-0">x</span>
+                <input aria-label={`Gols de ${game.team2}`} value={draft.score2} onChange={(e) => updateDraft(game.id, draft, "score2", e.target.value)} className="block h-10 w-12 shrink-0 rounded-lg border bg-white text-center text-base font-black" />
+                <button disabled={saving === game.id || saved} onClick={() => save(game.id, draft)} className={`block h-10 shrink-0 rounded-lg px-4 text-xs font-black text-white ${saved ? "bg-emerald-600" : "bg-[#3157d5] disabled:opacity-40"}`}>{saving === game.id ? "..." : saved ? "Salvo" : "Salvar"}</button>
               </> : <strong>{game.score1 === null || game.score2 === null ? "—" : `${game.score1} x ${game.score2}`}</strong>}
+              </div>
             </div>
             <div className="mt-3 border-t border-dashed pt-2 text-right text-xs text-muted-foreground">Status: <strong className="text-foreground">{statusLabel[game.status] ?? game.status}</strong></div>
           </article>;
