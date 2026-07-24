@@ -1,6 +1,7 @@
 export interface Participant {
   id: string;
   name: string;
+  email?: string | null;
   phone: string | null;
   is_admin: boolean;
   is_test: boolean;
@@ -147,5 +148,5 @@ export function scoreGuess(
   const guess2 = normalizeScoreValue(guess.score2);
   if (real1 === null || real2 === null || guess1 === null || guess2 === null) return 0;
   if (guess1 === real1 && guess2 === real2) return 5;
-  return Math.sign(guess1 - guess2) === Math.sign(real1 - real2) ? 2 : 0;
+  return Math.sign(guess1 - guess2) === Math.sign(real1 - real2) ? 3 : 0;
 }
