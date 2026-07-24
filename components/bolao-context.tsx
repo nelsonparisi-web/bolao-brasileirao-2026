@@ -30,7 +30,7 @@ interface BolaoContextType {
   isPasswordRecovery: boolean;
   loading: boolean;
   setSelectedParticipantId: (id: string | null) => void;
-  login: (email: string, password: string) => Promise<SaveResult>;
+  login: (identifier: string, password: string) => Promise<SaveResult>;
   register: (name: string, email: string, password: string, phone: string) => Promise<SaveResult>;
   requestPasswordReset: (email: string) => Promise<SaveResult>;
   updatePassword: (password: string) => Promise<SaveResult>;
@@ -155,8 +155,23 @@ export function BolaoProvider({ children }: { children: ReactNode }) {
     return () => data.subscription.unsubscribe();
   }, [getClient, refreshData]);
 
-  const login = useCallback(async (email: string, password: string): Promise<SaveResult> => {
-    const { error } = await getClient().auth.signInWithPassword({ email: email.trim(), password });
+  const login = useCallback(async (identifier: string, password: string): Promise<SaveResult> => {
+    const supabase = getClient();
+    const cleanIdentifier = identifier.trim();
+    let loginEmail = cleanIdentifier;
+
+    if (!cleanIdentifier.includes("@")) {
+      const { data, error: resolveError } = await supabase.rpc("resolve_login_email", {
+        login_identifier: cleanIdentifier,
+      });
+      if (resolveError) {
+        return { success: false, error: "Não foi possível localizar o usuário. Execute a atualização de login no Supabase." };
+      }
+      if (!data) return { success: false, error: "Nome ou celular não encontrado." };
+      loginEmail = String(data);
+    }
+
+    const { error } = await supabase.auth.signInWithPassword({ email: loginEmail.toLowerCase(), password });
     if (error) return { success: false, error: authError(error.message) };
     await refreshData();
     return { success: true };
