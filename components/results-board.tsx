@@ -50,14 +50,38 @@ export function ResultsBoard() {
         <select value={selectedRound} onChange={(e) => { setRound(Number(e.target.value)); setMessage(""); }} className="h-10 rounded-xl border px-3 text-sm font-bold">{(rounds.length ? rounds : [1]).map((item) => <option key={item} value={item}>Rodada {item}</option>)}</select>
       </header>
       {message && <p className="mx-4 mt-3 rounded-xl bg-secondary px-3 py-2 text-xs font-bold">{message}</p>}
-      <div className="w-full overflow-visible sm:overflow-x-auto"><table className="w-full text-sm sm:min-w-[560px]"><thead className="hidden sm:table-header-group"><tr className="bg-[#f5f7ff] text-left text-[10px] uppercase text-muted-foreground"><th className="p-3">Data</th><th className="p-3">Jogo</th><th className="p-3">Resultado</th><th className="p-3">Status</th></tr></thead>
-      <tbody className="block sm:table-row-group">{selected.map((game) => {
+      <div className="divide-y lg:hidden">
+        {selected.map((game) => {
+          const draft = draftFor(game.id, game.score1, game.score2);
+          const saved = game.score1 !== null && game.score2 !== null
+            && String(game.score1) === draft.score1 && String(game.score2) === draft.score2;
+          return <article key={game.id} className="min-w-0 p-4">
+            <div className="flex min-w-0 items-start justify-between gap-3">
+              <h3 className="min-w-0 break-words text-sm font-black leading-snug">{game.team1} x {game.team2}</h3>
+              <time className="shrink-0 whitespace-nowrap text-[11px] text-muted-foreground">{formatDate(game.datetime)}</time>
+            </div>
+            <div className="mt-3 flex w-full flex-wrap items-center gap-2">
+              <span className="mr-auto text-[10px] font-black uppercase text-muted-foreground">Resultado</span>
+              {isAdmin ? <>
+                <input value={draft.score1} onChange={(e) => updateDraft(game.id, draft, "score1", e.target.value)} className="h-9 w-11 rounded-lg border text-center font-black" />
+                <span>x</span>
+                <input value={draft.score2} onChange={(e) => updateDraft(game.id, draft, "score2", e.target.value)} className="h-9 w-11 rounded-lg border text-center font-black" />
+                <button disabled={saving === game.id || saved} onClick={() => save(game.id, draft)} className={`rounded-lg px-3 py-2 text-xs font-black text-white ${saved ? "bg-emerald-600" : "bg-[#3157d5] disabled:opacity-40"}`}>{saving === game.id ? "..." : saved ? "Salvo" : "Salvar"}</button>
+              </> : <strong>{game.score1 === null || game.score2 === null ? "—" : `${game.score1} x ${game.score2}`}</strong>}
+            </div>
+            <div className="mt-3 border-t border-dashed pt-2 text-right text-xs text-muted-foreground">Status: <strong className="text-foreground">{statusLabel[game.status] ?? game.status}</strong></div>
+          </article>;
+        })}
+        {selected.length === 0 && <p className="p-8 text-center text-sm text-muted-foreground">Nenhum jogo cadastrado nesta rodada.</p>}
+      </div>
+      <div className="hidden w-full overflow-x-auto lg:block"><table className="w-full min-w-[560px] text-sm"><thead><tr className="bg-[#f5f7ff] text-left text-[10px] uppercase text-muted-foreground"><th className="p-3">Data</th><th className="p-3">Jogo</th><th className="p-3">Resultado</th><th className="p-3">Status</th></tr></thead>
+      <tbody>{selected.map((game) => {
         const draft = draftFor(game.id, game.score1, game.score2);
         const saved = game.score1 !== null && game.score2 !== null
           && String(game.score1) === draft.score1 && String(game.score2) === draft.score2;
-        return <tr key={game.id} className="grid grid-cols-2 gap-x-3 gap-y-2 border-t p-3 sm:table-row sm:p-0"><td className="col-start-2 row-start-1 z-10 justify-self-end p-0 text-xs text-muted-foreground sm:table-cell sm:p-3 sm:text-foreground">{formatDate(game.datetime)}</td><td className="col-span-2 row-start-1 p-0 pr-20 font-black sm:table-cell sm:p-3">{game.team1} x {game.team2}</td><td className="col-span-2 p-0 sm:table-cell sm:p-3">{isAdmin ? <div className="flex w-full flex-wrap items-center gap-2"><span className="mr-auto text-[10px] font-black uppercase text-muted-foreground sm:hidden">Resultado</span><input value={draft.score1} onChange={(e) => updateDraft(game.id, draft, "score1", e.target.value)} className="h-9 w-11 rounded-lg border text-center font-black" /><span>x</span><input value={draft.score2} onChange={(e) => updateDraft(game.id, draft, "score2", e.target.value)} className="h-9 w-11 rounded-lg border text-center font-black" /><button disabled={saving === game.id || saved} onClick={() => save(game.id, draft)} className={`rounded-lg px-3 py-2 text-xs font-black text-white ${saved ? "bg-emerald-600" : "bg-[#3157d5] disabled:opacity-40"}`}>{saving === game.id ? "..." : saved ? "Salvo" : "Salvar"}</button></div> : <div className="flex items-center gap-2"><span className="text-xs font-bold text-muted-foreground sm:hidden">Resultado:</span><strong>{game.score1 === null || game.score2 === null ? "—" : `${game.score1} x ${game.score2}`}</strong></div>}</td><td className="flex items-center justify-end gap-2 p-0 text-xs font-bold sm:table-cell sm:p-3"><span className="text-muted-foreground sm:hidden">Status:</span>{statusLabel[game.status] ?? game.status}</td></tr>;
+        return <tr key={game.id} className="border-t"><td className="p-3 text-xs">{formatDate(game.datetime)}</td><td className="p-3 font-black">{game.team1} x {game.team2}</td><td className="p-3">{isAdmin ? <div className="flex items-center gap-2"><input value={draft.score1} onChange={(e) => updateDraft(game.id, draft, "score1", e.target.value)} className="h-9 w-12 rounded-lg border text-center font-black" /><span>x</span><input value={draft.score2} onChange={(e) => updateDraft(game.id, draft, "score2", e.target.value)} className="h-9 w-12 rounded-lg border text-center font-black" /><button disabled={saving === game.id || saved} onClick={() => save(game.id, draft)} className={`rounded-lg px-3 py-2 text-xs font-black text-white ${saved ? "bg-emerald-600" : "bg-[#3157d5] disabled:opacity-40"}`}>{saving === game.id ? "..." : saved ? "Salvo" : "Salvar"}</button></div> : <strong>{game.score1 === null || game.score2 === null ? "—" : `${game.score1} x ${game.score2}`}</strong>}</td><td className="p-3 text-xs font-bold">{statusLabel[game.status] ?? game.status}</td></tr>;
       })}
-      {selected.length === 0 && <tr className="block"><td colSpan={4} className="block p-8 text-center text-muted-foreground">Nenhum jogo cadastrado nesta rodada.</td></tr>}</tbody></table></div>
+      {selected.length === 0 && <tr><td colSpan={4} className="p-8 text-center text-muted-foreground">Nenhum jogo cadastrado nesta rodada.</td></tr>}</tbody></table></div>
     </section>
   );
 }
