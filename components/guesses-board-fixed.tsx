@@ -72,10 +72,45 @@ export function GuessesBoard() {
         </div>
       </header>
       {message && <p className="mx-4 mt-3 rounded-xl bg-secondary px-3 py-2 text-xs font-bold">{message}</p>}
-      <div className="w-full overflow-visible sm:overflow-x-auto">
-        <table className="w-full border-collapse text-sm sm:min-w-[620px]">
-          <thead className="hidden sm:table-header-group"><tr className="bg-[#f5f7ff] text-left text-[10px] uppercase text-muted-foreground"><th className="p-3">Data</th><th className="p-3">Partida</th><th className="p-3">Palpite</th><th className="p-3">Resultado</th><th className="p-3">Pts</th></tr></thead>
-          <tbody className="block sm:table-row-group">
+      <div className="divide-y lg:hidden">
+        {roundGames.map((game) => {
+          const draft = draftFor(game.id);
+          const guess = getGuess(selectedParticipantId, game.id);
+          const locked = isGuessLocked(game, 1);
+          const saved = Boolean(
+            guess
+            && guess.score1 !== null
+            && guess.score2 !== null
+            && String(guess.score1) === draft.score1
+            && String(guess.score2) === draft.score2
+          );
+          return <article key={game.id} className="min-w-0 p-4">
+            <div className="flex min-w-0 items-start justify-between gap-3">
+              <div className="min-w-0">
+                <h3 className="break-words text-sm font-black leading-snug">{game.team1} <span className="font-normal text-muted-foreground">x</span> {game.team2}</h3>
+                {game.stadium && <p className="mt-0.5 truncate text-[11px] text-muted-foreground">{game.stadium}</p>}
+              </div>
+              <time className="shrink-0 whitespace-nowrap text-[11px] text-muted-foreground">{formatDate(game.datetime)}</time>
+            </div>
+            <div className="mt-3 flex w-full flex-wrap items-center gap-2">
+              <span className="mr-auto text-[10px] font-black uppercase text-muted-foreground">Palpite</span>
+              <input value={draft.score1} disabled={locked || !canEdit} onChange={(e) => updateDraft(game.id, "score1", e.target.value)} className="h-9 w-11 rounded-lg border text-center font-black disabled:bg-slate-100" />
+              <span>x</span>
+              <input value={draft.score2} disabled={locked || !canEdit} onChange={(e) => updateDraft(game.id, "score2", e.target.value)} className="h-9 w-11 rounded-lg border text-center font-black disabled:bg-slate-100" />
+              {canEdit && <button disabled={locked || saving === game.id || saved} onClick={() => save(game.id)} className={`rounded-lg px-3 py-2 text-xs font-black text-white shadow-sm disabled:opacity-100 ${saved ? "bg-emerald-600 shadow-emerald-950/20" : "bg-[#3157d5] shadow-indigo-950/20 disabled:opacity-40"}`}>{saving === game.id ? "..." : saved ? "Salvo" : "Salvar"}</button>}
+            </div>
+            <div className="mt-3 flex items-center justify-between border-t border-dashed pt-2 text-xs">
+              <span className="text-muted-foreground">Resultado: <strong className="text-foreground">{game.score1 === null || game.score2 === null ? "—" : `${game.score1} x ${game.score2}`}</strong></span>
+              <span className="text-muted-foreground">Pontos: <strong className="text-foreground">{scoreGuess(game, guess)}</strong></span>
+            </div>
+          </article>;
+        })}
+        {roundGames.length === 0 && <p className="p-8 text-center text-sm text-muted-foreground">Nenhum jogo cadastrado nesta rodada.</p>}
+      </div>
+      <div className="hidden w-full overflow-x-auto lg:block">
+        <table className="w-full min-w-[620px] border-collapse text-sm">
+          <thead><tr className="bg-[#f5f7ff] text-left text-[10px] uppercase text-muted-foreground"><th className="p-3">Data</th><th className="p-3">Partida</th><th className="p-3">Palpite</th><th className="p-3">Resultado</th><th className="p-3">Pts</th></tr></thead>
+          <tbody>
             {roundGames.map((game) => {
               const draft = draftFor(game.id);
               const guess = getGuess(selectedParticipantId, game.id);
@@ -87,15 +122,15 @@ export function GuessesBoard() {
                 && String(guess.score1) === draft.score1
                 && String(guess.score2) === draft.score2
               );
-              return <tr key={game.id} className="grid grid-cols-2 gap-x-3 gap-y-2 border-t p-3 sm:table-row sm:p-0">
-                <td className="col-start-2 row-start-1 z-10 justify-self-end p-0 text-xs text-muted-foreground sm:table-cell sm:p-3 sm:text-foreground">{formatDate(game.datetime)}</td>
-                <td className="col-span-2 row-start-1 p-0 pr-24 font-black sm:table-cell sm:p-3">{game.team1} <span className="font-normal text-muted-foreground">x</span> {game.team2}<small className="block font-normal text-muted-foreground">{game.stadium || ""}</small></td>
-                <td className="col-span-2 p-0 sm:table-cell sm:p-3"><div className="flex w-full flex-wrap items-center gap-2"><span className="mr-auto text-[10px] font-black uppercase text-muted-foreground sm:hidden">Palpite</span><input value={draft.score1} disabled={locked || !canEdit} onChange={(e) => updateDraft(game.id, "score1", e.target.value)} className="h-9 w-11 rounded-lg border text-center font-black disabled:bg-slate-100" /><span>x</span><input value={draft.score2} disabled={locked || !canEdit} onChange={(e) => updateDraft(game.id, "score2", e.target.value)} className="h-9 w-11 rounded-lg border text-center font-black disabled:bg-slate-100" />{canEdit && <button disabled={locked || saving === game.id || saved} onClick={() => save(game.id)} className={`rounded-lg px-3 py-2 text-xs font-black text-white shadow-sm disabled:opacity-100 ${saved ? "bg-emerald-600 shadow-emerald-950/20" : "bg-[#3157d5] shadow-indigo-950/20 disabled:opacity-40"}`}>{saving === game.id ? "..." : saved ? "Salvo" : "Salvar"}</button>}</div></td>
-                <td className="flex items-center gap-2 p-0 text-xs sm:table-cell sm:p-3 sm:text-sm"><span className="font-bold text-muted-foreground sm:hidden">Resultado:</span><strong>{game.score1 === null || game.score2 === null ? "—" : `${game.score1} x ${game.score2}`}</strong></td>
-                <td className="flex items-center justify-end gap-2 p-0 text-xs sm:table-cell sm:p-3 sm:text-sm"><span className="font-bold text-muted-foreground sm:hidden">Pontos:</span><strong>{scoreGuess(game, guess)}</strong></td>
+              return <tr key={game.id} className="border-t">
+                <td className="p-3 text-xs">{formatDate(game.datetime)}</td>
+                <td className="p-3 font-black">{game.team1} <span className="font-normal text-muted-foreground">x</span> {game.team2}<small className="block font-normal text-muted-foreground">{game.stadium || ""}</small></td>
+                <td className="p-3"><div className="flex items-center gap-2"><input value={draft.score1} disabled={locked || !canEdit} onChange={(e) => updateDraft(game.id, "score1", e.target.value)} className="h-9 w-12 rounded-lg border text-center font-black disabled:bg-slate-100" /><span>x</span><input value={draft.score2} disabled={locked || !canEdit} onChange={(e) => updateDraft(game.id, "score2", e.target.value)} className="h-9 w-12 rounded-lg border text-center font-black disabled:bg-slate-100" />{canEdit && <button disabled={locked || saving === game.id || saved} onClick={() => save(game.id)} className={`rounded-lg px-3 py-2 text-xs font-black text-white shadow-sm disabled:opacity-100 ${saved ? "bg-emerald-600 shadow-emerald-950/20" : "bg-[#3157d5] shadow-indigo-950/20 disabled:opacity-40"}`}>{saving === game.id ? "..." : saved ? "Salvo" : "Salvar"}</button>}</div></td>
+                <td className="p-3 font-bold">{game.score1 === null || game.score2 === null ? "—" : `${game.score1} x ${game.score2}`}</td>
+                <td className="p-3 font-black">{scoreGuess(game, guess)}</td>
               </tr>;
             })}
-            {roundGames.length === 0 && <tr className="block"><td colSpan={5} className="block p-8 text-center text-muted-foreground">Nenhum jogo cadastrado nesta rodada.</td></tr>}
+            {roundGames.length === 0 && <tr><td colSpan={5} className="p-8 text-center text-muted-foreground">Nenhum jogo cadastrado nesta rodada.</td></tr>}
           </tbody>
         </table>
       </div>
