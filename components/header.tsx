@@ -22,6 +22,7 @@ export function Header() {
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [passwordConfirmation, setPasswordConfirmation] = useState("");
+  const [pixCopied, setPixCopied] = useState(false);
   const [message, setMessage] = useState<{ type: "error" | "success"; text: string } | null>(null);
 
   const closeForm = () => {
@@ -102,6 +103,14 @@ export function Header() {
 
   const activeMode: AuthMode = isPasswordRecovery ? "new-password" : authMode;
   const submitLabel = activeMode === "login" ? "Entrar" : activeMode === "register" ? "Cadastrar" : activeMode === "reset" ? "Enviar e-mail" : "Salvar nova senha";
+  const pixKey = settings?.pix_key?.trim();
+
+  const copyPix = async () => {
+    if (!pixKey) return;
+    await navigator.clipboard.writeText(pixKey);
+    setPixCopied(true);
+    window.setTimeout(() => setPixCopied(false), 1800);
+  };
 
   return (
     <header className="px-2 pt-2 sm:px-3 lg:px-4 xl:px-6">
@@ -125,6 +134,11 @@ export function Header() {
               <span className="rounded-full bg-white/15 px-3 py-1 ring-1 ring-white/20">
                 {Number(settings?.donation_percent ?? 20)}% para doação
               </span>
+              {pixKey && (
+                <button type="button" onClick={copyPix} title="Copiar chave PIX" className="rounded-full bg-[#ff6b6b] px-3 py-1 font-black text-[#3f1420] shadow-sm transition hover:bg-[#ff8585]">
+                  {pixCopied ? "PIX copiado!" : `PIX: ${pixKey}`}
+                </button>
+              )}
               <span className="rounded-full bg-white/15 px-3 py-1 ring-1 ring-white/20">{APP_VERSION}</span>
               <Link href="/manual" className="rounded-full bg-white px-3 py-1 font-black text-[#3157d5] shadow-sm hover:bg-cyan-50">
                 Ajuda
