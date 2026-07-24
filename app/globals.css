@@ -140,10 +140,11 @@
   }
 
   #admin { order: 4; }
-  #palpites { order: 5; }
-  #resultados { order: 6; }
-  #ranking-completo { order: 7; }
-  #financeiro { order: 99; }
+  #administracao { order: 4; }
+  #financeiro { order: 5; }
+  #palpites { order: 6; }
+  #resultados { order: 7; }
+  #ranking-completo { order: 8; }
 
   #admin > section > div:first-child {
     display: none !important;
