@@ -183,7 +183,15 @@ export function Header() {
                     <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Celular com DDD" inputMode="tel" className="h-10 rounded-full bg-white px-4 text-sm text-foreground" />
                   </>
                 )}
-                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="E-mail" required className="h-10 rounded-full bg-white px-4 text-sm text-foreground" />
+                <input
+                  type={activeMode === "login" ? "text" : "email"}
+                  autoComplete={activeMode === "login" ? "username" : "email"}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder={activeMode === "login" ? "E-mail, nome ou celular" : "E-mail"}
+                  required
+                  className="h-10 rounded-full bg-white px-4 text-sm text-foreground"
+                />
                 {activeMode !== "reset" && (
                   <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Senha" required className="h-10 rounded-full bg-white px-4 text-sm text-foreground" />
                 )}
