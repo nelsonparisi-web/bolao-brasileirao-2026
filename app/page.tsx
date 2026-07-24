@@ -8,6 +8,7 @@ import { ResultsBoard } from "@/components/results-board";
 import { Ranking } from "@/components/ranking";
 import { AdminPanel } from "@/components/admin-panel";
 import { DashboardOverview } from "@/components/dashboard-overview";
+import { PaymentsBoard } from "@/components/payments-board";
 
 export default function Home() {
   return (
@@ -18,6 +19,7 @@ export default function Home() {
           <DashboardOverview />
           <Metrics />
           <section id="administracao" className="scroll-mt-3"><AdminPanel /></section>
+          <section id="financeiro" className="scroll-mt-3"><PaymentsBoard /></section>
           <section id="palpites" className="scroll-mt-3"><GuessesBoard /></section>
           <section id="resultados" className="scroll-mt-3"><ResultsBoard /></section>
           <section id="ranking-completo" className="scroll-mt-3"><Ranking /></section>
