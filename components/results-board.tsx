@@ -45,9 +45,12 @@ export function ResultsBoard() {
 
   return (
     <section className="w-full min-w-0 overflow-hidden rounded-2xl bg-white/90 shadow-xl">
-      <header className="flex flex-wrap items-end justify-between gap-3 border-b p-4">
+      <header className="grid gap-3 border-b p-4 sm:flex sm:items-end sm:justify-between">
         <div><p className="text-[10px] font-black uppercase tracking-widest text-[#3157d5]">Tabela oficial</p><h2 className="text-xl font-black">Resultados · Rodada {selectedRound}</h2></div>
-        <select value={selectedRound} onChange={(e) => { setRound(Number(e.target.value)); setMessage(""); }} className="h-10 rounded-xl border px-3 text-sm font-bold">{(rounds.length ? rounds : [1]).map((item) => <option key={item} value={item}>Rodada {item}</option>)}</select>
+        <label className="grid w-full gap-1 text-[10px] font-black uppercase text-muted-foreground sm:w-auto">
+          Rodada
+          <select value={selectedRound} onChange={(e) => { setRound(Number(e.target.value)); setMessage(""); }} className="h-10 w-full rounded-xl border bg-white px-3 text-sm font-bold normal-case text-foreground sm:min-w-36">{(rounds.length ? rounds : [1]).map((item) => <option key={item} value={item}>Rodada {item}</option>)}</select>
+        </label>
       </header>
       {message && <p className="mx-4 mt-3 rounded-xl bg-secondary px-3 py-2 text-xs font-bold">{message}</p>}
       <div className="divide-y lg:hidden">
