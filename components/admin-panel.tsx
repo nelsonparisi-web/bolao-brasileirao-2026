@@ -1,19 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { currency, formatPhone, normalizePhone, type Game } from "@/lib/data";
+import { currency, formatPhone, fromSaoPauloDateTimeInput, normalizePhone, toSaoPauloDateTimeInput, type Game } from "@/lib/data";
 import { useBolao } from "./bolao-context";
 
 type AdminTab = "participants" | "payments" | "messages" | "schedule" | "settings";
 type MessageTemplate = "missing" | "leader" | "prize" | "invite";
 type Notice = { type: "success" | "error"; text: string } | null;
-
-function toLocalInput(value: string) {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "";
-  const local = new Date(date.getTime() - date.getTimezoneOffset() * 60_000);
-  return local.toISOString().slice(0, 16);
-}
 
 export function AdminPanel() {
   const {
@@ -133,7 +126,7 @@ export function AdminPanel() {
   const saveGame = async (game: Game, form: HTMLFormElement) => {
     const data = new FormData(form);
     const result = await updateGame(game.id, {
-      datetime: new Date(String(data.get("datetime"))).toISOString(),
+      datetime: fromSaoPauloDateTimeInput(String(data.get("datetime"))),
       stadium: String(data.get("stadium") || "").trim() || null,
       status: String(data.get("status")) as Game["status"],
     });
@@ -225,8 +218,8 @@ export function AdminPanel() {
       </div>}
 
       {tab === "schedule" && <div>
-        <div className="flex flex-wrap items-center justify-between gap-2 border-b p-4"><div><h3 className="font-black">Agenda e status dos jogos</h3><p className="text-xs text-muted-foreground">Partidas adiadas ficam bloqueadas até receberem nova data e status “Agendado”.</p></div><select value={round} onChange={(event) => setRound(event.target.value === "all" ? "all" : Number(event.target.value))} className="h-10 rounded-lg border px-3 text-sm font-bold"><option value="all">Todas as rodadas</option>{rounds.map((item) => <option key={item} value={item}>Rodada {item}</option>)}</select></div>
-        <div className="max-h-[620px] overflow-auto"><table className="w-full min-w-[860px] text-sm"><thead><tr className="sticky top-0 bg-[#f5f7ff] text-left text-[10px] uppercase text-muted-foreground"><th className="p-3">Rodada/jogo</th><th className="p-3">Data e hora</th><th className="p-3">Estádio</th><th className="p-3">Status</th><th className="p-3">Ação</th></tr></thead><tbody>{visibleGames.map((game) => <tr key={game.id} className="border-t"><td className="p-3 font-black">R{game.round} · {game.team1} x {game.team2}</td><td colSpan={4} className="p-2"><form onSubmit={(event) => { event.preventDefault(); run(() => saveGame(game, event.currentTarget), "Partida atualizada."); }} className="grid grid-cols-[180px_1fr_150px_90px] gap-2"><input name="datetime" type="datetime-local" defaultValue={toLocalInput(game.datetime)} required className="h-9 rounded-lg border px-2 text-xs" /><input name="stadium" defaultValue={game.stadium ?? ""} placeholder="Estádio" className="h-9 rounded-lg border px-2 text-xs" /><select name="status" defaultValue={game.status} className="h-9 rounded-lg border px-2 text-xs font-bold"><option value="scheduled">Agendado</option><option value="postponed">Adiado</option><option value="suspended">Suspenso</option><option value="cancelled">Cancelado</option><option value="live">Ao vivo</option><option value="finished">Encerrado</option></select><button disabled={busy} className="h-9 rounded-lg bg-[#3157d5] text-xs font-black text-white disabled:opacity-50">Salvar</button></form></td></tr>)}</tbody></table></div>
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b p-4"><div><h3 className="font-black">Agenda e status dos jogos</h3><p className="text-xs text-muted-foreground">Todos os horários são de Brasília. Partidas adiadas podem receber nova data e status “Agendado” manualmente.</p></div><select value={round} onChange={(event) => setRound(event.target.value === "all" ? "all" : Number(event.target.value))} className="h-10 rounded-lg border px-3 text-sm font-bold"><option value="all">Todas as rodadas</option>{rounds.map((item) => <option key={item} value={item}>Rodada {item}</option>)}</select></div>
+        <div className="max-h-[620px] overflow-auto"><table className="w-full min-w-[860px] text-sm"><thead><tr className="sticky top-0 bg-[#f5f7ff] text-left text-[10px] uppercase text-muted-foreground"><th className="p-3">Rodada/jogo</th><th className="p-3">Data e hora (Brasília)</th><th className="p-3">Estádio</th><th className="p-3">Status</th><th className="p-3">Ação</th></tr></thead><tbody>{visibleGames.map((game) => <tr key={game.id} className="border-t"><td className="p-3 font-black">R{game.round} · {game.team1} x {game.team2}</td><td colSpan={4} className="p-2"><form onSubmit={(event) => { event.preventDefault(); run(() => saveGame(game, event.currentTarget), "Partida atualizada."); }} className="grid grid-cols-[180px_1fr_150px_90px] gap-2"><input name="datetime" type="datetime-local" defaultValue={toSaoPauloDateTimeInput(game.datetime)} required className="h-9 rounded-lg border px-2 text-xs" /><input name="stadium" defaultValue={game.stadium ?? ""} placeholder="Estádio" className="h-9 rounded-lg border px-2 text-xs" /><select name="status" defaultValue={game.status} className="h-9 rounded-lg border px-2 text-xs font-bold"><option value="scheduled">Agendado</option><option value="postponed">Adiado</option><option value="suspended">Suspenso</option><option value="cancelled">Cancelado</option><option value="live">Ao vivo</option><option value="finished">Encerrado</option></select><button disabled={busy} className="h-9 rounded-lg bg-[#3157d5] text-xs font-black text-white disabled:opacity-50">Salvar</button></form></td></tr>)}</tbody></table></div>
       </div>}
 
       {tab === "settings" && <form onSubmit={saveSettings} className="grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-4">
