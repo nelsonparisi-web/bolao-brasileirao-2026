@@ -74,6 +74,7 @@ export const APP_VERSION_DATE = "21/07/2026";
 export const APP_VERSION_TIME = "21:55";
 export const APP_COMMIT = "base segura do Brasileirão";
 export const GUESS_LOCK_WINDOW_MS = 60 * 60 * 1000;
+export const APP_TIME_ZONE = "America/Sao_Paulo";
 
 export const currency = new Intl.NumberFormat("pt-BR", {
   style: "currency",
@@ -101,19 +102,42 @@ export function formatPhone(phone: string | null | undefined): string {
 }
 
 function parseGameDate(date: string): Date {
-  const raw = String(date || "").trim();
-  const parsed = raw.match(/^(\d{4})-(\d{2})-(\d{2})[T\s](\d{2}):(\d{2})(?::(\d{2}))?/);
-  if (parsed) {
-    return new Date(
-      Number(parsed[1]),
-      Number(parsed[2]) - 1,
-      Number(parsed[3]),
-      Number(parsed[4]),
-      Number(parsed[5]),
-      Number(parsed[6] || 0)
-    );
-  }
-  return new Date(raw);
+  const raw = String(date || "").trim().replace(" ", "T");
+  if (!raw) return new Date(Number.NaN);
+
+  // O Supabase devolve timestamptz com Z ou offset. Preserve esse instante.
+  // Valores antigos sem offset são considerados horário de Brasília.
+  const hasExplicitTimeZone = /(?:Z|[+-]\d{2}:?\d{2})$/i.test(raw);
+  return new Date(hasExplicitTimeZone ? raw : `${raw}-03:00`);
+}
+
+export function toSaoPauloDateTimeInput(date: string): string {
+  const parsed = parseGameDate(date);
+  if (Number.isNaN(parsed.getTime())) return "";
+
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: APP_TIME_ZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(parsed);
+  const part = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((item) => item.type === type)?.value ?? "";
+
+  return `${part("year")}-${part("month")}-${part("day")}T${part("hour")}:${part("minute")}`;
+}
+
+export function fromSaoPauloDateTimeInput(value: string): string {
+  const clean = String(value || "").trim();
+  const match = clean.match(/^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2})(?::\d{2})?$/);
+  if (!match) return "";
+
+  // O Brasileirão 2026 ocorre sob UTC-03:00 (horário de Brasília).
+  const parsed = new Date(`${match[1]}:00-03:00`);
+  return Number.isNaN(parsed.getTime()) ? "" : parsed.toISOString();
 }
 
 function normalizeScoreValue(value: number | string | null | undefined): number | null {
@@ -125,6 +149,7 @@ function normalizeScoreValue(value: number | string | null | undefined): number 
 export function formatDate(date: string): string {
   const parsed = parseGameDate(date);
   return new Intl.DateTimeFormat("pt-BR", {
+    timeZone: APP_TIME_ZONE,
     day: "2-digit",
     month: "2-digit",
     hour: "2-digit",
